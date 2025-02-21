@@ -7,7 +7,52 @@
 
 // YOU CAN ADD YOUR OWN FUNCTIONS, DECLARATIONS AND VARIABLES HERE
 
+// Define the keywords and symbols
+#define NUMKEYWORDS 21
+const char *keywords[NUMKEYWORDS] = {
+  "class", "constructor", "method", "function",    // Program components
+  "int", "boolean", "char", "void",                // Primitive types
+  "var", "static", "field",                        // Variable declarations
+  "let", "do", "if", "else", "while", "return",    // Statements
+  "true", "false", "null",                         // Constants
+  "this"                                           // Object reference
+};
 
+# define NUMSYMBOLS 19
+const char symbols[NUMSYMBOLS] = {
+  '(' , ')' , '[', ']', '{', '}', ',', ';', '=', '.',
+  '+', '-', '*', '/', '&', '|', '~', '<', '>'
+};
+
+FILE *file;
+Token t;
+int line, tokenReady;
+
+// Loops through the keywords array and checks if the string is a keyword
+int isKeyword(char *str)
+{
+  for (int i = 0; i < NUMKEYWORDS; i++)
+  {
+    if (!strcmp(str, keywords[i]))
+    {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+// Loops through the symbols array and checks if the character is a symbol
+int isSymbol(char c)
+{
+  for (int i = 0; i < NUMSYMBOLS; i++)
+  {
+    if (c == symbols[i])
+    {
+      return 1;
+    }
+  }
+  return 0;
+}
 
 // IMPLEMENT THE FOLLOWING functions
 //***********************************
@@ -19,8 +64,16 @@
 // if everything goes well the function should return 1
 int InitLexer (char* file_name)
 {
+  if ((file = fopen(file_name, "r")))
+  {
+    tokenReady = 0;
+    line = 1;
+    strcpy(t.fl, file_name);
+    return 1;
+  }
   return 0;
 }
+
 
 
 // Get the next token from the source file
@@ -42,6 +95,7 @@ Token PeekNextToken ()
 // clean out at end, e.g. close files, free memory, ... etc
 int StopLexer ()
 {
+  fclose(file);
 	return 0;
 }
 
