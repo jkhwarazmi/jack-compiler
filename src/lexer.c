@@ -54,6 +54,80 @@ int isSymbol(char c)
   return 0;
 }
 
+// Returns first non-whitespace character
+int eatWhitespace()
+{
+  int c;
+
+  while (1)
+  {
+    // Consume whitespace
+    c = fgetc(file);
+    while (c != EOF && isspace(c))
+    {
+      if (c == '\n')
+      {
+        line++;
+      }
+      c = fgetc(file);
+    }
+
+    // No comment so return character
+    if (c != '/')
+    {
+      return c;
+    }
+
+    // Consume comments
+    c = fgetc(file);
+    if (c == '/')
+    {
+      while (c != EOF && c != '\n')
+      {
+        c = fgetc(file);
+      }
+      if (c == '\n')
+      {
+        line++;
+      }
+      else if (c == EOF)
+      {
+        return c;
+      }
+    }
+    // Multi-line comments
+    else if (c == '*')
+    {
+      int prev = 0;
+      c = fgetc(file);
+      while (c != EOF)
+      {
+        if (prev == '*' && c == '/')
+        {
+          break;
+        }
+        if (c == '\n')
+        {
+          line++;
+        }
+        prev = c;
+        c = fgetc(file);
+      }
+      if (c == EOF)
+      {
+        return EofInCom;
+      }
+    }
+    // Differentiate between division and comment
+    else
+    {
+      ungetc(c, file);
+      return '/';
+    }
+  }  
+  return c;
+}
+
 // IMPLEMENT THE FOLLOWING functions
 //***********************************
 
