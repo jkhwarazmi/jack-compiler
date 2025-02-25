@@ -128,6 +128,79 @@ int eatWhitespace()
   return c;
 }
 
+Token buildToken() 
+{
+  // Remove whitespace and comments
+  int c = eatWhitespace();
+  if (c == EOF)
+  {
+    strcpy(t.lx, "End of File");
+    t.tp = EOFile;
+    t.ln = line;
+    return t;
+  }
+
+  char tmp[128];
+  int i = 0;
+
+  // Check for keywords and identifiers
+  if (isalpha(c) || c == '_')
+  {
+    while (c != EOF && (isalpha(c) || c == '_' || isdigit(c)))
+    {
+      tmp[i] = c;
+      i++;
+      c = fgetc(file);
+    }
+    tmp[i] = '\0';
+    strcpy(t.lx, tmp);
+
+    if (isKeyword(tmp))
+    {
+      t.tp = RESWORD;
+    }
+    else
+    {
+      t.tp = ID;
+    }
+    t.ln = line;
+    return t;
+  }
+  else if (isdigit(c))
+  {
+    while (c != EOF && isdigit(c))
+    {
+      tmp[i] = c;
+      i++;
+      c = fgetc(file);
+    }
+    tmp[i] = '\0';
+    strcpy(t.lx, tmp);
+
+    t.tp = INT;
+    t.ln = line;
+    return t;
+  }
+  else
+  {
+    if (isSymbol(c))
+    {
+      tmp[i] = c;
+      tmp[i + 1] = '\0';
+      strcpy(t.lx, tmp);
+      t.tp = SYMBOL;
+    }
+    else
+    {
+      t.tp = ERR;
+      strcpy(t.lx, "Error: illegal symbol in source file");
+      t.ec = IllSym;
+    }
+    t.ln = line;
+    return t;
+  }
+}
+
 // IMPLEMENT THE FOLLOWING functions
 //***********************************
 
@@ -149,20 +222,27 @@ int InitLexer (char* file_name)
 }
 
 
-
 // Get the next token from the source file
 Token GetNextToken ()
 {
-	Token t;
-  t.tp = ERR;
+  if (tokenReady)
+  {
+    tokenReady = 0;
+    return t;
+  }
+  t = buildToken();
   return t;
 }
 
 // peek (look) at the next token in the source file without removing it from the stream
 Token PeekNextToken ()
 {
-	Token t;
-  t.tp = ERR;
+  if (tokenReady)
+  {
+    return t;
+  }
+  t = buildToken();
+  tokenReady = 1;
   return t;
 }
 
@@ -175,11 +255,27 @@ int StopLexer ()
 
 // do not remove the next line
 #ifndef TEST
-int main ()
+int main (int argc, char *argv[])
 {
 	// implement your main function here
   // NOTE: the autograder will not use your main function
-
+  if (argc != 2)
+  {
+    printf("Usage: %s <file>\n", argv[0]);
+    return 1;
+  }
+  if (!InitLexer(argv[1]))
+  {
+    printf("Error opening file\n");
+    return 1;
+  }
+  t.tp = RESWORD;
+  while (t.tp != EOFile && t.tp != ERR)
+  {
+    t = GetNextToken();
+    printf("< %s, %d, %s, %s >\n", t.fl, t.ln, t.lx, t.tp == RESWORD ? "RESWORD" : t.tp == ID ? "ID" : t.tp == INT ? "INT" : t.tp == SYMBOL ? "SYMBOL" : t.tp == STRING ? "STRING" : t.tp == ERR ? "ERR" : "EOFile");
+  }
+  
 	return 0;
 }
 // do not remove the next line
