@@ -139,10 +139,49 @@ Token buildToken()
     t.ln = line;
     return t;
   }
+  else if (c == EofInCom)
+  {
+    t.tp = ERR;
+    strcpy(t.lx, "Error: unexpected eof in comment");
+    t.ec = EofInCom;
+    t.ln = line;
+    return t;
+  }
 
   char tmp[128];
   int i = 0;
 
+  // Check for string literals
+  if (c == '"')
+  {
+    c = fgetc(file);
+    while (c != '"' && c != EOF && c != '\n')
+    {
+      tmp[i] = c;
+      i++;
+      c = fgetc(file);
+    }
+    if (c == '\n')
+    {
+      printf("New line in string literal: %d\n", line);
+      t.tp = ERR;
+      strcpy(t.lx, "Error: new line in string constant");
+      t.ec = NewLnInStr;
+    }
+    else if (c == EOF)
+    {
+      t.tp = ERR;
+      strcpy(t.lx, "Error: unexpected eof in string constant");
+      t.ec = EofInStr;
+    }
+    else {
+      t.tp = STRING;
+      tmp[i] = '\0';
+      strcpy(t.lx, tmp);
+    }
+    t.ln = line;
+    return t;
+  }
   // Check for keywords and identifiers
   if (isalpha(c) || c == '_')
   {
