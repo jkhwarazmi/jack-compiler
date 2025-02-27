@@ -193,6 +193,7 @@ Token buildToken()
     }
     tmp[i] = '\0';
     strcpy(t.lx, tmp);
+    ungetc(c, file);
 
     if (isKeyword(tmp))
     {
@@ -215,6 +216,7 @@ Token buildToken()
     }
     tmp[i] = '\0';
     strcpy(t.lx, tmp);
+    ungetc(c, file);
 
     t.tp = INT;
     t.ln = line;
