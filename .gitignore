@@ -8,5 +8,3 @@ a.out
 
 # Graders
 tests/lexer/LexerGrader
-tests/lexer/lexer
-tests/lexer/*_tokens_2.txt

@@ -296,28 +296,5 @@ int StopLexer ()
 
 // do not remove the next line
 #ifndef TEST
-int main (int argc, char *argv[])
-{
-	// implement your main function here
-  // NOTE: the autograder will not use your main function
-  if (argc != 2)
-  {
-    printf("Usage: %s <file>\n", argv[0]);
-    return 1;
-  }
-  if (!InitLexer(argv[1]))
-  {
-    printf("Error opening file\n");
-    return 1;
-  }
-  t.tp = RESWORD;
-  while (t.tp != EOFile && t.tp != ERR)
-  {
-    t = GetNextToken();
-    printf("< %s, %d, %s, %s >\n", t.fl, t.ln, t.lx, t.tp == RESWORD ? "RESWORD" : t.tp == ID ? "ID" : t.tp == INT ? "INT" : t.tp == SYMBOL ? "SYMBOL" : t.tp == STRING ? "STRING" : t.tp == ERR ? "ERR" : "EOFile");
-  }
-  
-	return 0;
-}
 // do not remove the next line
 #endif
