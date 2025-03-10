@@ -850,6 +850,201 @@ ParserInfo returnStatement() {
 }
 
 
+ParserInfo expression() {
+	ParserInfo pi;
+	pi.er = none;
+
+	pi = relationalExpression();
+	if (pi.er != none) {
+		return pi;
+	}
+
+	Token t = PeekNextToken();
+	while (t.tp == SYMBOL && !(strcmp(t.lx, "&") && strcmp(t.lx, "|"))) {
+		t = GetNextToken();
+
+		pi = relationalExpression();
+		if (pi.er != none) {
+			return pi;
+		}
+		t = PeekNextToken();
+	}
+
+	return pi;
+}
+
+
+ParserInfo relationalExpression() {
+	ParserInfo pi;
+	pi.er = none;
+
+	pi = arithmeticExpression();
+	if (pi.er != none) {
+		return pi;
+	}
+
+	Token t = PeekNextToken();
+	while (t.tp == SYMBOL && !(strcmp(t.lx, "=") && strcmp(t.lx, ">") && strcmp(t.lx, "<"))) {
+		t = GetNextToken();
+
+		pi = arithmeticExpression();
+		if (pi.er != none) {
+			return pi;
+		}
+		t = PeekNextToken();
+	}
+
+	return pi;
+}
+
+
+ParserInfo arithmeticExpression() {
+	ParserInfo pi;
+	pi.er = none;
+
+	pi = term();
+	if (pi.er != none) {
+		return pi;
+	}
+
+	Token t = PeekNextToken();
+	while (t.tp == SYMBOL && !(strcmp(t.lx, "+") && strcmp(t.lx, "-"))) {
+		t = GetNextToken();
+
+		pi = term();
+		if (pi.er != none) {
+			return pi;
+		}
+		t = PeekNextToken();
+	}
+
+	return pi;
+}
+
+
+ParserInfo term() {
+	ParserInfo pi;
+	pi.er = none;
+
+	pi = factor();
+	if (pi.er != none) {
+		return pi;
+	}
+
+	Token t = PeekNextToken();
+	while (t.tp == SYMBOL && !(strcmp(t.lx, "*") && strcmp(t.lx, "/"))) {
+		t = GetNextToken();
+
+		pi = factor();
+		if (pi.er != none) {
+			return pi;
+		}
+		t = PeekNextToken();
+	}
+
+	return pi;
+}
+
+
+ParserInfo factor() {
+	ParserInfo pi;
+	pi.er = none;
+
+	Token t = PeekNextToken();
+	if (t.tp == SYMBOL && !(strcmp(t.lx, "-") && strcmp(t.lx, "~"))) {
+		t = GetNextToken();
+	}
+
+	pi = operand();
+	if (pi.er != none) {
+		return pi;
+	}
+
+	return pi;
+}
+
+
+ParserInfo operand() {
+	ParserInfo pi;
+	pi.er = none;
+
+	Token t = GetNextToken();
+	if (t.tp == INT || t.tp == STRING ) {
+		;
+	} else if (t.tp == RESWORD && !(strcmp(t.lx, "true") && strcmp(t.lx, "false") && strcmp(t.lx, "null") && strcmp(t.lx, "this"))) {
+		;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
+		pi = expression();
+		if (pi.er != none) {
+			return pi;
+		}
+
+		t = GetNextToken();
+		if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+			;
+		} else {
+			pi.er = closeParenExpected;
+			pi.tk = t;
+			return pi;
+		}
+	} else if (t.tp == ID) {
+		t = PeekNextToken();
+		if (t.tp == SYMBOL && !strcmp(t.lx, ".")) {
+			t = GetNextToken();
+
+			t = GetNextToken();
+			if (t.tp == ID) {
+				t = PeekNextToken();
+			} else {
+				pi.er = idExpected;
+				pi.tk = t;
+				return pi;
+			}
+		}
+
+		if (t.tp == SYMBOL && !strcmp(t.lx, "[")) {
+			t = GetNextToken();
+
+			pi = expression();
+			if (pi.er != none) {
+				return pi;
+			}
+
+			t = GetNextToken();
+			if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
+				;
+			} else {
+				pi.er = closeBracketExpected;
+				pi.tk = t;
+				return pi;
+			}
+		} else if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
+			t = GetNextToken();
+
+			pi = expressionList();
+			if (pi.er != none) {
+				return pi;
+			}
+
+			t = GetNextToken();
+			if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+				;
+			} else {
+				pi.er = closeParenExpected;
+				pi.tk = t;
+				return pi;
+			}
+		}
+	} else {
+		pi.er = syntaxError;
+		pi.tk = t;
+		return pi;
+	}
+
+	return pi;
+}
+
+
 #ifndef TEST_PARSER
 int main (int argc, char *argv[])
 {
