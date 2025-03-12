@@ -163,7 +163,6 @@ Token buildToken()
     }
     if (c == '\n')
     {
-      printf("New line in string literal: %d\n", line);
       t.tp = ERR;
       strcpy(t.lx, "Error: new line in string constant");
       t.ec = NewLnInStr;
