@@ -42,6 +42,56 @@ ParserInfo Parse ()
 
 	// implement the function
 	pi = classDeclar();
+	switch(pi.er) {
+		case none:
+			break;
+		case lexerErr:
+			printf("Line %i at or near %s: lexer error\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case classExpected:
+			printf("Line %i at or near %s: class expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case idExpected:
+			printf("Line %i at or near %s: identifier expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case openBraceExpected:
+			printf("Line %i at or near %s: { expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case closeBraceExpected:
+			printf("Line %i at or near %s: } expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case memberDeclarErr:
+			printf("Line %i at or near %s: class member declaration must begin with static, field, constructor , function , or method\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case classVarErr:
+			printf("Line %i at or near %s: class variables must begin with field or static\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case illegalType:
+			printf("Line %i at or near %s: a type must be int, char, boolean, or identifier\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case semicolonExpected:
+			printf("Line %i at or near %s: ; expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case subroutineDeclarErr:
+			printf("Line %i at or near %s: subrouting declaration must begin with constructor, function, or method\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case openParenExpected:
+			printf("Line %i at or near %s: ( expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case closeParenExpected:
+			printf("Line %i at or near %s: ) expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case closeBracketExpected:
+			printf("Line %i at or near %s: ] expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		case equalExpected:
+			printf("Line %i at or near %s: = expected\n", pi.tk.ln, pi.tk.lx);
+			break;
+		default:
+			printf("Line %i at or near %s: syntax error\n", pi.tk.ln, pi.tk.lx);
+			break;
+	}
+
 	return pi;
 }
 
