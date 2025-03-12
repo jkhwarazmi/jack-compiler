@@ -11,7 +11,7 @@ typedef enum {RESWORD, ID , INT , SYMBOL, STRING, EOFile, ERR} TokenType;
 // NewLnInStr: New line in string literal
 // EofInStr: End of file in string literal
 // IllSym: Illegal symbol in source file
-typedef enum {EofInCom , NewLnInStr , EofInStr , IllSym} LexErrCodes;
+typedef enum {EofInCom , NewLnInStr , EofInStr , IllSym, NoLexErr} LexErrCodes;
 
 // a structure for representing tokens
 typedef struct {
