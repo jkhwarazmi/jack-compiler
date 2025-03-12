@@ -107,7 +107,11 @@ ParserInfo classDeclar() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (t.tp == RESWORD && !strcmp(t.lx, "class")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == RESWORD && !strcmp(t.lx, "class")) {
 		;
 	} else {
 		pi.er = classExpected;
@@ -116,7 +120,11 @@ ParserInfo classDeclar() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == ID) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == ID) {
 		;
 	} else {
 		pi.er = idExpected;
@@ -125,7 +133,11 @@ ParserInfo classDeclar() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
 		;
 	} else {
 		pi.er = openBraceExpected;
@@ -134,16 +146,31 @@ ParserInfo classDeclar() {
 	}
 
 	t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
 	while (t.tp != EOF && !(strcmp(t.lx, "static") && strcmp(t.lx, "field") && strcmp(t.lx, "constructor") && strcmp(t.lx, "function") && strcmp(t.lx, "method"))) {
 		pi = memberDeclar();
 		if (pi.er != none) {
 			return pi;
 		}
+
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
 		;
 	} else {
 		pi.er = closeBraceExpected;
@@ -167,7 +194,11 @@ ParserInfo memberDeclar() {
 	pi.er = none;
 
 	Token t = PeekNextToken();
-	if (!(strcmp(t.lx, "static") && strcmp(t.lx, "field"))) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!(strcmp(t.lx, "static") && strcmp(t.lx, "field"))) {
 		pi = classVarDeclar();
 		if (pi.er != none) {
 			return pi;
@@ -192,7 +223,11 @@ ParserInfo classVarDeclar() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (!(strcmp(t.lx, "static") && strcmp(t.lx, "field"))) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!(strcmp(t.lx, "static") && strcmp(t.lx, "field"))) {
 		;
 	} else {
 		pi.er = classVarErr;
@@ -206,7 +241,11 @@ ParserInfo classVarDeclar() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == ID) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == ID) {
 		;
 	} else {
 		pi.er = idExpected;
@@ -215,22 +254,41 @@ ParserInfo classVarDeclar() {
 	}
 
 	t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
 	while (t.tp == SYMBOL && !strcmp(t.lx, ",")) {
 		t = GetNextToken();
+
 		t = GetNextToken();
-		
-		if (t.tp == ID) {
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		} else if (t.tp == ID) {
 			;
 		} else {
 			pi.er = idExpected;
 			pi.tk = t;
 			return pi;
 		}
+
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
 		;
 	} else {
 		pi.er = semicolonExpected;
@@ -247,7 +305,11 @@ ParserInfo type() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (t.tp == RESWORD && !(strcmp(t.lx, "int") && strcmp(t.lx, "char") && strcmp(t.lx, "boolean"))) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == RESWORD && !(strcmp(t.lx, "int") && strcmp(t.lx, "char") && strcmp(t.lx, "boolean"))) {
 		;
 	} else if (t.tp == ID) {
 		;
@@ -266,7 +328,11 @@ ParserInfo subroutineDeclar() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (!(strcmp(t.lx, "constructor") && strcmp(t.lx, "function") && strcmp(t.lx, "method"))) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!(strcmp(t.lx, "constructor") && strcmp(t.lx, "function") && strcmp(t.lx, "method"))) {
 		;
 	} else {
 		pi.er = subroutineDeclarErr;
@@ -275,7 +341,11 @@ ParserInfo subroutineDeclar() {
 	}
 
 	t = PeekNextToken();
-	if (t.tp == RESWORD && !strcmp(t.lx, "void")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == RESWORD && !strcmp(t.lx, "void")) {
 		t = GetNextToken();
 	} else {
 		pi = type();
@@ -285,7 +355,11 @@ ParserInfo subroutineDeclar() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == ID) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == ID) {
 		;
 	} else {
 		pi.er = idExpected;
@@ -294,7 +368,11 @@ ParserInfo subroutineDeclar() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
 		;
 	} else {
 		pi.er = openParenExpected;
@@ -308,7 +386,11 @@ ParserInfo subroutineDeclar() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
 		;
 	} else {
 		pi.er = closeParenExpected;
@@ -330,7 +412,11 @@ ParserInfo paramList() {
 	pi.er = none;
 
 	Token t = PeekNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
 		return pi;
 	} else if (t.tp == ID || !(strcmp(t.lx, "int") && strcmp(t.lx, "char") && strcmp(t.lx, "boolean"))) {
 		pi = type();
@@ -339,7 +425,11 @@ ParserInfo paramList() {
 		}
 
 		t = GetNextToken();
-		if (t.tp == ID) {
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		} else if (t.tp == ID) {
 			;
 		} else {
 			pi.er = idExpected;
@@ -348,6 +438,12 @@ ParserInfo paramList() {
 		}
 
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
+
 		while (t.tp == SYMBOL && !strcmp(t.lx, ",")) {
 			t = GetNextToken();
 
@@ -357,7 +453,11 @@ ParserInfo paramList() {
 			}
 
 			t = GetNextToken();
-			if (t.tp == ID) {
+			if (t.tp == ERR) {
+				pi.er = lexerErr;
+				pi.tk = t;
+				return pi;
+			} else if (t.tp == ID) {
 				;
 			} else {
 				pi.er = idExpected;
@@ -366,6 +466,11 @@ ParserInfo paramList() {
 			}
 
 			t = PeekNextToken();
+			if (t.tp == ERR) {
+				pi.er = lexerErr;
+				pi.tk = t;
+				return pi;
+			}
 		}
 	} else {
 		pi.er = closeParenExpected;
@@ -382,7 +487,11 @@ ParserInfo subroutineBody() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
 		;
 	} else {
 		pi.er = openBraceExpected;
@@ -391,16 +500,32 @@ ParserInfo subroutineBody() {
 	}
 
 	t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+
 	while (t.tp != EOF && strcmp(t.lx, "}")) {
 		pi = statement();
 		if (pi.er != none) {
 			return pi;
 		}
+
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
 		;
 	} else {
 		pi.er = closeBraceExpected;
@@ -417,7 +542,11 @@ ParserInfo statement() {
 	pi.er = none;
 
 	Token t = PeekNextToken();
-	if (!strcmp(t.lx, "var")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, "var")) {
 		pi = varDeclarStatement();
 		if (pi.er != none) {
 			return pi;
@@ -462,7 +591,11 @@ ParserInfo varDeclarStatement() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (!strcmp(t.lx, "var")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, "var")) {
 		;
 	} else {
 		pi.er = syntaxError;
@@ -476,7 +609,11 @@ ParserInfo varDeclarStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == ID) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == ID) {
 		;
 	} else {
 		pi.er = idExpected;
@@ -485,11 +622,21 @@ ParserInfo varDeclarStatement() {
 	}
 
 	t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+
 	while (t.tp == SYMBOL && !strcmp(t.lx, ",")) {
 		t = GetNextToken();
+
 		t = GetNextToken();
-		
-		if (t.tp == ID) {
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		} else if (t.tp == ID) {
 			;
 		} else {
 			pi.er = idExpected;
@@ -500,7 +647,11 @@ ParserInfo varDeclarStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
 		;
 	} else {
 		pi.er = semicolonExpected;
@@ -517,7 +668,11 @@ ParserInfo letStatement() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (!strcmp(t.lx, "let")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, "let")) {
 		;
 	} else {
 		pi.er = syntaxError;
@@ -526,7 +681,11 @@ ParserInfo letStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == ID) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == ID) {
 		;
 	} else {
 		pi.er = idExpected;
@@ -535,7 +694,11 @@ ParserInfo letStatement() {
 	}
 
 	t = PeekNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "[")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "[")) {
 		t = GetNextToken();
 		pi = expression();
 		if (pi.er != none) {
@@ -543,7 +706,11 @@ ParserInfo letStatement() {
 		}
 
 		t = GetNextToken();
-		if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		} else if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
 			;
 		} else {
 			pi.er = closeBracketExpected;
@@ -553,7 +720,11 @@ ParserInfo letStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "=")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "=")) {
 		;
 	} else {
 		pi.er = equalExpected;
@@ -567,7 +738,11 @@ ParserInfo letStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
 		;
 	} else {
 		pi.er = semicolonExpected;
@@ -584,7 +759,11 @@ ParserInfo ifStatement() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (!strcmp(t.lx, "if")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, "if")) {
 		;
 	} else {
 		pi.er = syntaxError;
@@ -593,7 +772,11 @@ ParserInfo ifStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
 		;
 	} else {
 		pi.er = openParenExpected;
@@ -607,7 +790,11 @@ ParserInfo ifStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
 		;
 	} else {
 		pi.er = closeParenExpected;
@@ -616,7 +803,11 @@ ParserInfo ifStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
 		;
 	} else {
 		pi.er = openBraceExpected;
@@ -625,16 +816,32 @@ ParserInfo ifStatement() {
 	}
 
 	t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+	
 	while (!(strcmp(t.lx, "var") && strcmp(t.lx, "let") && strcmp(t.lx, "if") && strcmp(t.lx, "while") && strcmp(t.lx, "do") && strcmp(t.lx, "return"))) {
 		pi = statement();
 		if (pi.er != none) {
 			return pi;
 		}
+
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
 		;
 	} else {
 		pi.er = closeBraceExpected;
@@ -643,11 +850,19 @@ ParserInfo ifStatement() {
 	}
 
 	t = PeekNextToken();
-	if (!strcmp(t.lx, "else")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, "else")) {
 		t = GetNextToken();
 
 		t = GetNextToken();
-		if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		} else if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
 			;
 		} else {
 			pi.er = openBraceExpected;
@@ -656,16 +871,32 @@ ParserInfo ifStatement() {
 		}
 
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
+
 		while (!(strcmp(t.lx, "var") && strcmp(t.lx, "let") && strcmp(t.lx, "if") && strcmp(t.lx, "while") && strcmp(t.lx, "do") && strcmp(t.lx, "return"))) {
 			pi = statement();
 			if (pi.er != none) {
 				return pi;
 			}
+
 			t = PeekNextToken();
+			if (t.tp == ERR) {
+				pi.er = lexerErr;
+				pi.tk = t;
+				return pi;
+			}
 		}
 
 		t = GetNextToken();
-		if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		} else if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
 			;
 		} else {
 			pi.er = closeBraceExpected;
@@ -683,7 +914,11 @@ ParserInfo whileStatement() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (!strcmp(t.lx, "while")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, "while")) {
 		;
 	} else {
 		pi.er = syntaxError;
@@ -692,7 +927,11 @@ ParserInfo whileStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
 		;
 	} else {
 		pi.er = openParenExpected;
@@ -706,7 +945,11 @@ ParserInfo whileStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
 		;
 	} else {
 		pi.er = closeParenExpected;
@@ -715,7 +958,11 @@ ParserInfo whileStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
 		;
 	} else {
 		pi.er = openBraceExpected;
@@ -724,16 +971,32 @@ ParserInfo whileStatement() {
 	}
 
 	t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+
 	while (!(strcmp(t.lx, "var") && strcmp(t.lx, "let") && strcmp(t.lx, "if") && strcmp(t.lx, "while") && strcmp(t.lx, "do") && strcmp(t.lx, "return"))) {
 		pi = statement();
 		if (pi.er != none) {
 			return pi;
 		}
+
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "}")) {
 		;
 	} else {
 		pi.er = closeBraceExpected;
@@ -750,7 +1013,11 @@ ParserInfo doStatement() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (!strcmp(t.lx, "do")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, "do")) {
 		;
 	} else {
 		pi.er = syntaxError;
@@ -764,7 +1031,11 @@ ParserInfo doStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
 		;
 	} else {
 		pi.er = semicolonExpected;
@@ -781,7 +1052,11 @@ ParserInfo subroutineCall() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (t.tp == ID) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == ID) {
 		;
 	} else {
 		pi.er = idExpected;
@@ -790,11 +1065,19 @@ ParserInfo subroutineCall() {
 	}
 
 	t = PeekNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ".")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ".")) {
 		t = GetNextToken();
 
 		t = GetNextToken();
-		if (t.tp == ID) {
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		} else if (t.tp == ID) {
 			;
 		} else {
 			pi.er = idExpected;
@@ -804,7 +1087,11 @@ ParserInfo subroutineCall() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
 		;
 	} else {
 		pi.er = openParenExpected;
@@ -818,7 +1105,11 @@ ParserInfo subroutineCall() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
 		;
 	} else {
 		pi.er = closeParenExpected;
@@ -835,7 +1126,11 @@ ParserInfo expressionList() {
 	pi.er = none;
 
 	Token t = PeekNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
 		return pi;
 	}
 
@@ -845,6 +1140,12 @@ ParserInfo expressionList() {
 	}
 
 	t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+
 	while (t.tp == SYMBOL && !strcmp(t.lx, ",")) {
 		t = GetNextToken();
 
@@ -854,6 +1155,11 @@ ParserInfo expressionList() {
 		}
 
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	return pi;
@@ -865,7 +1171,11 @@ ParserInfo returnStatement() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (!strcmp(t.lx, "return")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, "return")) {
 		;
 	} else {
 		pi.er = syntaxError;
@@ -874,7 +1184,11 @@ ParserInfo returnStatement() {
 	}
 
 	t = PeekNextToken();
-	if (!strcmp(t.lx, ";")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (!strcmp(t.lx, ";")) {
 		;
 	} else if (!strcmp(t.lx, "}")) {
 		pi.er = semicolonExpected;
@@ -888,7 +1202,11 @@ ParserInfo returnStatement() {
 	}
 
 	t = GetNextToken();
-	if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !strcmp(t.lx, ";")) {
 		;
 	} else {
 		pi.er = semicolonExpected;
@@ -910,6 +1228,12 @@ ParserInfo expression() {
 	}
 
 	Token t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+
 	while (t.tp == SYMBOL && !(strcmp(t.lx, "&") && strcmp(t.lx, "|"))) {
 		t = GetNextToken();
 
@@ -917,7 +1241,13 @@ ParserInfo expression() {
 		if (pi.er != none) {
 			return pi;
 		}
+
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	return pi;
@@ -934,6 +1264,12 @@ ParserInfo relationalExpression() {
 	}
 
 	Token t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+
 	while (t.tp == SYMBOL && !(strcmp(t.lx, "=") && strcmp(t.lx, ">") && strcmp(t.lx, "<"))) {
 		t = GetNextToken();
 
@@ -941,7 +1277,13 @@ ParserInfo relationalExpression() {
 		if (pi.er != none) {
 			return pi;
 		}
+
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	return pi;
@@ -958,6 +1300,12 @@ ParserInfo arithmeticExpression() {
 	}
 
 	Token t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+
 	while (t.tp == SYMBOL && !(strcmp(t.lx, "+") && strcmp(t.lx, "-"))) {
 		t = GetNextToken();
 
@@ -966,6 +1314,11 @@ ParserInfo arithmeticExpression() {
 			return pi;
 		}
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	return pi;
@@ -982,6 +1335,12 @@ ParserInfo term() {
 	}
 
 	Token t = PeekNextToken();
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	}
+
 	while (t.tp == SYMBOL && !(strcmp(t.lx, "*") && strcmp(t.lx, "/"))) {
 		t = GetNextToken();
 
@@ -989,7 +1348,13 @@ ParserInfo term() {
 		if (pi.er != none) {
 			return pi;
 		}
+
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
 	}
 
 	return pi;
@@ -1001,7 +1366,11 @@ ParserInfo factor() {
 	pi.er = none;
 
 	Token t = PeekNextToken();
-	if (t.tp == SYMBOL && !(strcmp(t.lx, "-") && strcmp(t.lx, "~"))) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == SYMBOL && !(strcmp(t.lx, "-") && strcmp(t.lx, "~"))) {
 		t = GetNextToken();
 	}
 
@@ -1019,7 +1388,11 @@ ParserInfo operand() {
 	pi.er = none;
 
 	Token t = GetNextToken();
-	if (t.tp == INT || t.tp == STRING ) {
+	if (t.tp == ERR) {
+		pi.er = lexerErr;
+		pi.tk = t;
+		return pi;
+	} else if (t.tp == INT || t.tp == STRING ) {
 		;
 	} else if (t.tp == RESWORD && !(strcmp(t.lx, "true") && strcmp(t.lx, "false") && strcmp(t.lx, "null") && strcmp(t.lx, "this"))) {
 		;
@@ -1030,7 +1403,11 @@ ParserInfo operand() {
 		}
 
 		t = GetNextToken();
-		if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
 			;
 		} else {
 			pi.er = closeParenExpected;
@@ -1039,12 +1416,27 @@ ParserInfo operand() {
 		}
 	} else if (t.tp == ID) {
 		t = PeekNextToken();
+		if (t.tp == ERR) {
+			pi.er = lexerErr;
+			pi.tk = t;
+			return pi;
+		}
+
 		if (t.tp == SYMBOL && !strcmp(t.lx, ".")) {
 			t = GetNextToken();
 
 			t = GetNextToken();
-			if (t.tp == ID) {
+			if (t.tp == ERR) {
+				pi.er = lexerErr;
+				pi.tk = t;
+				return pi;
+			} else if (t.tp == ID) {
 				t = PeekNextToken();
+				if (t.tp == ERR) {
+					pi.er = lexerErr;
+					pi.tk = t;
+					return pi;
+				}
 			} else {
 				pi.er = idExpected;
 				pi.tk = t;
@@ -1061,7 +1453,11 @@ ParserInfo operand() {
 			}
 
 			t = GetNextToken();
-			if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
+			if (t.tp == ERR) {
+				pi.er = lexerErr;
+				pi.tk = t;
+				return pi;
+			} else if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
 				;
 			} else {
 				pi.er = closeBracketExpected;
@@ -1077,7 +1473,11 @@ ParserInfo operand() {
 			}
 
 			t = GetNextToken();
-			if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
+			if (t.tp == ERR) {
+				pi.er = lexerErr;
+				pi.tk = t;
+				return pi;
+			} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
 				;
 			} else {
 				pi.er = closeParenExpected;
