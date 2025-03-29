@@ -4,10 +4,11 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "symbols.h"
 
 
 // you can declare prototypes of parser functions below
-ParserInfo classDeclar();
+ParserInfo classDelcar();
 ParserInfo memberDeclar();
 ParserInfo classVarDeclar();
 ParserInfo type();
@@ -41,7 +42,7 @@ ParserInfo Parse ()
 	ParserInfo pi;
 
 	// implement the function
-	pi = classDeclar();
+	pi = classDelcar();
 	switch(pi.er) {
 		case none:
 			break;
@@ -102,7 +103,7 @@ int StopParser ()
 	return 1;
 }
 
-ParserInfo classDeclar() {
+ParserInfo classDelcar() {
 	ParserInfo pi;
 	pi.er = none;
 
@@ -125,7 +126,11 @@ ParserInfo classDeclar() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == ID) {
-		;
+		if (insertP(t.lx) == -1) {
+			pi.er = redecIdentifier;
+			pi.tk = t;
+			return pi;
+		}
 	} else {
 		pi.er = idExpected;
 		pi.tk = t;
@@ -221,6 +226,7 @@ ParserInfo memberDeclar() {
 ParserInfo classVarDeclar() {
 	ParserInfo pi;
 	pi.er = none;
+	ClassSymbol s;
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -228,7 +234,7 @@ ParserInfo classVarDeclar() {
 		pi.tk = t;
 		return pi;
 	} else if (!(strcmp(t.lx, "static") && strcmp(t.lx, "field"))) {
-		;
+		strcpy(s.kind, t.lx);
 	} else {
 		pi.er = classVarErr;
 		pi.tk = t;
@@ -239,6 +245,7 @@ ParserInfo classVarDeclar() {
 	if (pi.er != none) {
 		return pi;
 	}
+	strcpy(s.type, pi.tk.lx);
 
 	t = GetNextToken();
 	if (t.tp == ERR) {
@@ -246,7 +253,11 @@ ParserInfo classVarDeclar() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == ID) {
-		;
+		if (insertC(t.lx, s.type, s.kind) == -1) {
+			pi.er = redecIdentifier;
+			pi.tk = t;
+			return pi;
+		}
 	} else {
 		pi.er = idExpected;
 		pi.tk = t;
@@ -268,7 +279,11 @@ ParserInfo classVarDeclar() {
 			pi.tk = t;
 			return pi;
 		} else if (t.tp == ID) {
-			;
+			if (insertC(t.lx, s.type, s.kind) == -1) {
+				pi.er = redecIdentifier;
+				pi.tk = t;
+				return pi;
+			}
 		} else {
 			pi.er = idExpected;
 			pi.tk = t;
@@ -310,9 +325,9 @@ ParserInfo type() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == RESWORD && !(strcmp(t.lx, "int") && strcmp(t.lx, "char") && strcmp(t.lx, "boolean"))) {
-		;
+		pi.tk = t;
 	} else if (t.tp == ID) {
-		;
+		pi.tk = t;
 	} else {
 		pi.er = illegalType;
 		pi.tk = t;
@@ -326,6 +341,7 @@ ParserInfo type() {
 ParserInfo subroutineDeclar() {
 	ParserInfo pi;
 	pi.er = none;
+	ClassSymbol s;
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -333,7 +349,7 @@ ParserInfo subroutineDeclar() {
 		pi.tk = t;
 		return pi;
 	} else if (!(strcmp(t.lx, "constructor") && strcmp(t.lx, "function") && strcmp(t.lx, "method"))) {
-		;
+		strcpy(s.kind, t.lx);
 	} else {
 		pi.er = subroutineDeclarErr;
 		pi.tk = t;
@@ -346,12 +362,14 @@ ParserInfo subroutineDeclar() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == RESWORD && !strcmp(t.lx, "void")) {
+		strcpy(s.type, t.lx);
 		t = GetNextToken();
 	} else {
 		pi = type();
 		if (pi.er != none) {
 			return pi;
 		}
+		strcpy(s.type, pi.tk.lx);
 	}
 
 	t = GetNextToken();
@@ -360,7 +378,11 @@ ParserInfo subroutineDeclar() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == ID) {
-		;
+		if (insertC(t.lx, s.type, s.kind) == -1) {
+			pi.er = redecIdentifier;
+			pi.tk = t;
+			return pi;
+		}
 	} else {
 		pi.er = idExpected;
 		pi.tk = t;
@@ -410,6 +432,7 @@ ParserInfo subroutineDeclar() {
 ParserInfo paramList() {
 	ParserInfo pi;
 	pi.er = none;
+	SubSymbol s;
 
 	Token t = PeekNextToken();
 	if (t.tp == ERR) {
@@ -423,6 +446,7 @@ ParserInfo paramList() {
 		if (pi.er != none) {
 			return pi;
 		}
+		strcpy(s.type, pi.tk.lx);
 
 		t = GetNextToken();
 		if (t.tp == ERR) {
@@ -430,7 +454,11 @@ ParserInfo paramList() {
 			pi.tk = t;
 			return pi;
 		} else if (t.tp == ID) {
-			;
+			if (insertS(t.lx, s.type, "argument") == -1) {
+				pi.er = redecIdentifier;
+				pi.tk = t;
+				return pi;
+			}
 		} else {
 			pi.er = idExpected;
 			pi.tk = t;
@@ -458,7 +486,11 @@ ParserInfo paramList() {
 				pi.tk = t;
 				return pi;
 			} else if (t.tp == ID) {
-				;
+				if (insertS(t.lx, s.type, "argument") == -1) {
+					pi.er = redecIdentifier;
+					pi.tk = t;
+					return pi;
+				}
 			} else {
 				pi.er = idExpected;
 				pi.tk = t;
@@ -589,6 +621,7 @@ ParserInfo statement() {
 ParserInfo varDeclarStatement() {
 	ParserInfo pi;
 	pi.er = none;
+	SubSymbol s;
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -607,6 +640,8 @@ ParserInfo varDeclarStatement() {
 	if (pi.er != none) {
 		return pi;
 	}
+	strcpy(s.type, pi.tk.lx);
+
 
 	t = GetNextToken();
 	if (t.tp == ERR) {
@@ -614,7 +649,11 @@ ParserInfo varDeclarStatement() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == ID) {
-		;
+		if (insertS(t.lx, s.type, "local") == -1) {
+			pi.er = redecIdentifier;
+			pi.tk = t;
+			return pi;
+		}
 	} else {
 		pi.er = idExpected;
 		pi.tk = t;
@@ -637,7 +676,11 @@ ParserInfo varDeclarStatement() {
 			pi.tk = t;
 			return pi;
 		} else if (t.tp == ID) {
-			;
+			if (insertS(t.lx, s.type, "local") == -1) {
+				pi.er = redecIdentifier;
+				pi.tk = t;
+				return pi;
+			}
 		} else {
 			pi.er = idExpected;
 			pi.tk = t;
