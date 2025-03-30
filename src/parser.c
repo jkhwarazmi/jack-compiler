@@ -679,7 +679,21 @@ ParserInfo letStatement() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == ID) {
-		;
+		// Check for local variable
+		int index = findS(t.lx);
+		char type[20] = "static";
+
+		// Check for class variable
+		if (index == -1) {
+			index = findC(t.lx);
+			strcpy(type, getKindC(index));
+		}
+
+		if (index == -1 || (strcmp(type, "static") && strcmp(type, "field"))) {
+			pi.er = undecIdentifier;
+			pi.tk = t;
+			return pi;
+		}
 	} else {
 		pi.er = idExpected;
 		pi.tk = t;
@@ -1408,6 +1422,9 @@ ParserInfo operand() {
 			return pi;
 		}
 	} else if (t.tp == ID) {
+		// Store the name of the ID
+		Token id = t;
+		
 		t = PeekNextToken();
 		if (t.tp == ERR) {
 			pi.er = lexerErr;
@@ -1433,6 +1450,23 @@ ParserInfo operand() {
 			} else {
 				pi.er = idExpected;
 				pi.tk = t;
+				return pi;
+			}
+		// The variable we stored earlier was not a class
+		} else {
+			// Check for local variable
+			int index = findS(id.lx);
+			char type[20] = "static";
+
+			// Check for class variable
+			if (index == -1) {
+				index = findC(id.lx);
+				strcpy(type, getKindC(index));
+			}
+
+			if (index == -1 || (strcmp(type, "static") && strcmp(type, "field"))) {
+				pi.er = undecIdentifier;
+				pi.tk = id;
 				return pi;
 			}
 		}
