@@ -9,3 +9,4 @@ a.out
 # Graders
 tests/lexer/LexerGrader
 tests/parser/ParserGrader
+tests/symbols/SymbolGrader
