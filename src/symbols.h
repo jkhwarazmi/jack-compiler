@@ -5,6 +5,63 @@
 #include "parser.h"
 
 // define your own types and function prototypes for the symbol table(s) module below
+// JACK Standard Library
+static const char *STD_LIBRARY[] = {
+  "Math", "Memory", "Screen", "Output", "Keyboard", "String", "Array", "Sys"
+};
+
+// Math functions
+static const char *MATH_FUNCS[] = {
+  "abs", "multiply", "divide", "min", "max", "sqrt"
+};
+
+// Memory functions
+static const char *MEMORY_FUNCS[] = {
+  "peek", "poke", "alloc", "deAlloc"
+};
+
+// Screen functions
+static const char *SCREEN_FUNCS[] = {
+  "clearScreen", "setColor", "drawPixel", "drawLine", "drawRectangle", "drawCircle"
+};
+
+// Output functions
+static const char *OUTPUT_FUNCS[] = {
+  "init", "moveCursor", "printChar", "printString", "printInt", "println", "backSpace"
+};
+
+// Keyboard functions
+static const char *KEYBOARD_FUNCS[] = {
+  "keyPressed", "readChar", "readLine", "readInt"
+};
+
+// String functions
+static const char *STRING_FUNCS[] = {
+  "new", "dispose", "length", "charAt", "setCharAt", "appendChar", "eraseLastChar", 
+  "intValue", "setInt", "newLine", "backSpace", "doubleQuote"
+};
+
+// Array functions
+static const char *ARRAY_FUNCS[] = {
+  "new", "dispose"
+};
+
+// System functions
+static const char *SYS_FUNCS[] = {
+  "halt", "error", "wait"
+};
+
+// Sizes
+static const int STD_LIBRARY_SIZE = sizeof(STD_LIBRARY) / sizeof(STD_LIBRARY[0]);
+static const int MATH_FUNCS_SIZE = sizeof(MATH_FUNCS) / sizeof(MATH_FUNCS[0]);
+static const int MEMORY_FUNCS_SIZE = sizeof(MEMORY_FUNCS) / sizeof(MEMORY_FUNCS[0]);
+static const int SCREEN_FUNCS_SIZE = sizeof(SCREEN_FUNCS) / sizeof(SCREEN_FUNCS[0]);
+static const int OUTPUT_FUNCS_SIZE = sizeof(OUTPUT_FUNCS) / sizeof(OUTPUT_FUNCS[0]);
+static const int KEYBOARD_FUNCS_SIZE = sizeof(KEYBOARD_FUNCS) / sizeof(KEYBOARD_FUNCS[0]);
+static const int STRING_FUNCS_SIZE = sizeof(STRING_FUNCS) / sizeof(STRING_FUNCS[0]);
+static const int ARRAY_FUNCS_SIZE = sizeof(ARRAY_FUNCS) / sizeof(ARRAY_FUNCS[0]);
+static const int SYS_FUNCS_SIZE = sizeof(SYS_FUNCS) / sizeof(SYS_FUNCS[0]);
+
 typedef struct {
   char name[128]; // name of the variable
   char type[128]; // type of the variable (int, char, boolean or class name)
@@ -69,5 +126,11 @@ char *getKindS(int index);
 // Gets the type of the symbol based on its index
 char *getTypeC(int index);
 char *getTypeS(int index);
+
+// Returns index in the std library if a class is standard, -1 if not
+int isStd(char *name);
+
+// Returns index in the std library if a method is standard, -1 if not
+int isStdMethod(char *name, char *method);
 
 #endif

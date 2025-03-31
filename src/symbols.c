@@ -179,6 +179,11 @@ ParserInfo checkClasses() {
   pi.er = none;
 
   for (int i = 0; i < cclen; i++) {
+    // First check std library
+    if (isStd(classes[i].class) != -1) {
+      continue;
+    }
+    
     // Find the class in the program symbol table
     int classIndex = findP(classes[i].class);
     if (classIndex == -1) {
@@ -199,6 +204,18 @@ ParserInfo checkClassCalls() {
   clen = 100;
 
   for (int i = 0; i < sclen; i++) {
+    // First check std library
+    if (isStd(sc[i].class) != -1) {
+      // Check if the method is valid
+      if (isStdMethod(sc[i].class, sc[i].prop) == -1) {
+        strcpy(pi.tk.lx, sc[i].prop);
+        pi.tk.ln = sc[i].line;
+        pi.er = undecIdentifier;
+        return pi;
+      }
+      continue;
+    }
+
     // Find the class in the program symbol table
     int classIndex = findP(sc[i].class);
     if (classIndex == -1) {
@@ -221,6 +238,91 @@ ParserInfo checkClassCalls() {
     }
   }
   return pi;
+}
+
+// Function to check if a class name is a standard library, returns its index or -1 if not
+int isStd(char *className) {
+  for (int i = 0; i < STD_LIBRARY_SIZE; i++) {
+    if (strcmp(className, STD_LIBRARY[i]) == 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+// Function to check if a method belongs to a specific standard library, returns index or -1 if not
+int isStdMethod(char *className, char *methodName) {
+  int index = isStd(className);
+  
+  // Check method against the appropriate function list
+  switch (index) {
+    // Math
+    case 0:
+      for (int i = 0; i < MATH_FUNCS_SIZE; i++) {
+        if (!strcmp(methodName, MATH_FUNCS[i])) {
+          return i;
+        }
+      }
+      break;
+    // Memory
+    case 1:
+      for (int i = 0; i < MEMORY_FUNCS_SIZE; i++) {
+        if (!strcmp(methodName, MEMORY_FUNCS[i])) {
+          return 1;
+        }
+      }
+      break;
+    // Screen
+    case 2:
+      for (int i = 0; i < SCREEN_FUNCS_SIZE; i++) {
+        if (!strcmp(methodName, SCREEN_FUNCS[i])) {
+          return 1;
+        }
+      }
+      break;
+    // Output
+    case 3:
+      for (int i = 0; i < OUTPUT_FUNCS_SIZE; i++) {
+        if (!strcmp(methodName, OUTPUT_FUNCS[i])) {
+          return 1;
+        }
+      }
+      break;
+    // Keyboard
+    case 4:
+      for (int i = 0; i < KEYBOARD_FUNCS_SIZE; i++) {
+        if (strcmp(methodName, KEYBOARD_FUNCS[i]) == 0) {
+          return 1;
+        }
+      }
+      break;
+    // String   
+    case 5:
+      for (int i = 0; i < STRING_FUNCS_SIZE; i++) {
+        if (strcmp(methodName, STRING_FUNCS[i]) == 0) {
+          return 1;
+        }
+      }
+      break;
+    // Array
+    case 6:
+      for (int i = 0; i < ARRAY_FUNCS_SIZE; i++) {
+        if (strcmp(methodName, ARRAY_FUNCS[i]) == 0) {
+          return 1;
+        }
+      }
+      break;
+    // Sys  
+    case 7:
+      for (int i = 0; i < SYS_FUNCS_SIZE; i++) {
+        if (strcmp(methodName, SYS_FUNCS[i]) == 0) {
+          return 1;
+        }
+      }
+      break;
+  }
+  
+  return -1;
 }
 
 // Returns the kind of the symbol based on its index
