@@ -25,6 +25,12 @@ typedef struct {
   ClassSymbol table[100]; // Class symbol table
 } ProgramSymbol;
 
+typedef struct {
+  char class[128]; // name of the class
+  char prop[128]; // name of the method or variable
+  int line; // line number of the call
+} SubCalls;
+
 // Reset the symbol tables
 void initSymbolTable();
 
@@ -32,6 +38,17 @@ void initSymbolTable();
 int insertP(char *name);
 int insertC(char *name, char *type, char *kind);
 int insertS(char *name, char *type, char *kind);
+
+// Adds a subroutine call to the table to check later
+void checkLater(char *name, char *method, int line);
+
+void checkClassLater(char *name, int line);
+
+// Checks class names for being in the table
+ParserInfo checkClasses();
+
+// Checks if the subroutine call is valid and returns 0 if it is, 0 otherwise
+ParserInfo checkClassCalls();
 
 // Returns the name of the current class
 char *getClassName();

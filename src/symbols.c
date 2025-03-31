@@ -13,11 +13,19 @@ int clen = 0; // Number of items in the class symbol table
 SubSymbol *s = p[0].table[0].table; // Subroutine symbol table
 int slen = 0; // Number of items in the subroutine symbol table
 
+SubCalls sc[100]; // Subroutine calls table to check later
+int sclen = 0; // Number of subroutine calls in the table
+
+SubCalls classes[100];
+int cclen = 0;
+
 // Reset the symbol tables
 void initSymbolTable() {
   plen = 0;
   clen = 0;
   slen = 0;
+  sclen = 0;
+  cclen = 0;
 
   c = p[0].table;
   s = c[0].table;
@@ -148,6 +156,71 @@ int getSOffset(int index) {
 
 char *getClassName() {
   return p[plen - 1].name;
+}
+
+// Adds a subroutine call to the table to check after we've filled the symbol table
+void checkLater(char *class, char *prop, int line) {
+  strcpy(sc[sclen].class, class);
+  strcpy(sc[sclen].prop, prop);
+  sc[sclen].line = line;
+  sclen++;
+}
+
+void checkClassLater(char *class, int line) {
+  strcpy(classes[cclen].class, class);
+  classes[cclen].line = line;
+  cclen++;
+}
+
+// Checks types to see if they're valid classes
+ParserInfo checkClasses() {
+  ParserInfo pi;
+  pi.tk.tp = 1;
+  pi.er = none;
+
+  for (int i = 0; i < cclen; i++) {
+    // Find the class in the program symbol table
+    int classIndex = findP(classes[i].class);
+    if (classIndex == -1) {
+      strcpy(pi.tk.lx, classes[i].class);
+      pi.tk.ln = classes[i].line;
+      pi.er = undecIdentifier;
+      return pi;
+    }
+  }
+  return pi;
+}
+
+// Checks the class calls in the table to see if they are valid
+ParserInfo checkClassCalls() {
+  ParserInfo pi;
+  pi.tk.tp = 1;
+  pi.er = none;
+  clen = 100;
+
+  for (int i = 0; i < sclen; i++) {
+    // Find the class in the program symbol table
+    int classIndex = findP(sc[i].class);
+    if (classIndex == -1) {
+      strcpy(pi.tk.lx, sc[i].class);
+      pi.tk.ln = sc[i].line;
+      pi.er = undecIdentifier;
+      return pi;
+    }
+
+    // Set the class symbol table
+    c = p[classIndex].table;
+
+    // Find the property in the class symbol table
+    int methodIndex = findC(sc[i].prop);
+    if (methodIndex == -1) {
+      strcpy(pi.tk.lx, sc[i].prop);
+      pi.tk.ln = sc[i].line;
+      pi.er = undecIdentifier;
+      return pi;
+    }
+  }
+  return pi;
 }
 
 // Returns the kind of the symbol based on its index

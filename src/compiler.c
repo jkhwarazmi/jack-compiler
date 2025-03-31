@@ -48,6 +48,14 @@ ParserInfo compile (char* dir_name)
     }
   }
 
+  if ((p = checkClasses()).er != none) {
+    return p;
+  }
+
+	if ((p = checkClassCalls()).er!= none) {
+		return p;
+	}
+  
   closedir(d);
 	return p;
 }

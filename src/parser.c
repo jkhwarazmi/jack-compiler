@@ -278,6 +278,9 @@ ParserInfo type() {
 		pi.tk = t;
 	} else if (t.tp == ID) {
 		pi.tk = t;
+
+		// Check the class in the table later
+		checkClassLater(t.lx, t.ln);
 	} else {
 		pi.er = illegalType;
 		pi.tk = t;
@@ -1054,9 +1057,11 @@ ParserInfo doStatement() {
 }
 
 
+// Need to modify w/ checking if subroutine in symbol table - requires reading all files
 ParserInfo subroutineCall() {
 	ParserInfo pi;
 	pi.er = none;
+	SubCalls s;
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -1064,6 +1069,10 @@ ParserInfo subroutineCall() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == ID) {
+		// By default, assume we're calling a method of the current class
+		strcpy(s.class, getClassName());
+		strcpy(s.prop, t.lx);
+		s.line = t.ln;
 		;
 	} else {
 		pi.er = idExpected;
@@ -1076,6 +1085,7 @@ ParserInfo subroutineCall() {
 		pi.er = lexerErr;
 		pi.tk = t;
 		return pi;
+	// We have an external class + method call
 	} else if (t.tp == SYMBOL && !strcmp(t.lx, ".")) {
 		t = GetNextToken();
 
@@ -1085,13 +1095,29 @@ ParserInfo subroutineCall() {
 			pi.tk = t;
 			return pi;
 		} else if (t.tp == ID) {
-			;
+			// The method was actually a class name or is a variable
+			strcpy(s.class, s.prop);
+
+			// Check for variable
+			int index;
+			if ((index = findS(s.class)) != -1) {
+				strcpy(s.class, getTypeS(index));
+			} else if ((index  = findC(s.class)) != -1) {
+				strcpy(s.class, getTypeC(index));
+			} 
+
+			// Now we have the method name
+			strcpy(s.prop, t.lx);
+			s.line = t.ln;
 		} else {
 			pi.er = idExpected;
 			pi.tk = t;
 			return pi;
 		}
 	}
+
+	// Add to the array of subroutine calls to check after parsing
+	checkLater(s.class, s.prop, s.line);
 
 	t = GetNextToken();
 	if (t.tp == ERR) {
@@ -1393,6 +1419,7 @@ ParserInfo factor() {
 ParserInfo operand() {
 	ParserInfo pi;
 	pi.er = none;
+	SubCalls s;
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -1441,6 +1468,26 @@ ParserInfo operand() {
 				pi.tk = t;
 				return pi;
 			} else if (t.tp == ID) {
+				strcpy(s.prop, t.lx);
+				s.line = t.ln;
+
+				// First check if its a local variable
+				int index = findS(id.lx);
+				if (index != -1 ) {
+					// Its type is the class name
+					strcpy(s.class, getTypeS(index));
+				} else {
+					index = findC(id.lx);
+					if (index != -1) {
+						// Its type is the class name
+						strcpy(s.class, getTypeC(index));
+					} else {
+						// Assume class name
+						strcpy(s.class, id.lx);
+					}
+				}
+				// Add to the array of subroutine calls to check after parsing
+				checkLater(s.class, s.prop, s.line);
 				t = PeekNextToken();
 				if (t.tp == ERR) {
 					pi.er = lexerErr;
