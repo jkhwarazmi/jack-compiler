@@ -289,7 +289,10 @@ Token PeekNextToken ()
 // clean out at end, e.g. close files, free memory, ... etc
 int StopLexer ()
 {
-  fclose(file);
+  if (file) {
+    fclose(file);
+    file = NULL;
+  }
 	return 0;
 }
 
