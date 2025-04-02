@@ -8,7 +8,7 @@
 
 
 // you can declare prototypes of parser functions below
-ParserInfo classDelcar();
+ParserInfo classDeclar();
 ParserInfo memberDeclar();
 ParserInfo classVarDeclar();
 ParserInfo type();
@@ -42,7 +42,7 @@ ParserInfo Parse ()
 	ParserInfo pi;
 
 	// implement the function
-	pi = classDelcar();
+	pi = classDeclar();
 	return pi;
 }
 
@@ -53,7 +53,7 @@ int StopParser ()
 	return 1;
 }
 
-ParserInfo classDelcar() {
+ParserInfo classDeclar() {
 	ParserInfo pi;
 	pi.er = none;
 
