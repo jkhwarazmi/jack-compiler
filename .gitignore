@@ -10,3 +10,9 @@ a.out
 tests/lexer/LexerGrader
 tests/parser/ParserGrader
 tests/symbols/SymbolGrader
+tests/codegen/CodeGrader
+tests/codegen/SourceFiles.txt
+
+# Generated VM code
+tests/**/*.vm
+!tests/codegen/*_compiled/*.vm
