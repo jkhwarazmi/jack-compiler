@@ -133,4 +133,10 @@ int isStd(char *name);
 // Returns index in the std library if a method is standard, -1 if not
 int isStdMethod(char *name, char *method);
 
+// Get Number of arguments for a method
+int getNumArgs(char *name);
+
+// Get number of local variables for a method
+int getNumLocals(char *name);
+
 #endif

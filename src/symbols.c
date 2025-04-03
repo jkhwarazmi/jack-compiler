@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "symbols.h"
+#include "compiler.h"
 
 ProgramSymbol p[100]; // Program symbol table
 int plen = 0; // Number of classes in the program symbol table
@@ -343,4 +344,60 @@ char *getTypeC(int index) {
 // Returns the type of the symbol based on its index
 char *getTypeS(int index) {
   return s[index].type;
+}
+
+// Get Number of arguments for a method
+int getNumArgs(char *name) {
+  // Split the string into class and method
+  char class[100], method[100];
+  sscanf(name, "%[^.].%s", class, method);
+  
+  // Check if the class is a standard library
+  if (isStd(class) != -1) {
+    return isStdMethod(class, method);
+  }
+
+  // Reset the symbol table
+  plen = 100;
+  clen = 100;
+  slen = 100;
+
+  c = p[findP(class)].table;
+  int methodIndex = findC(method);
+  setVoid(c[methodIndex].type);
+  s = c[methodIndex].table;
+
+  // Count the number of arguments
+  int numArgs = 0;
+  for (int i = 0; i < slen; i++) {
+    if (!strcmp(s[i].kind, "argument")) {
+      numArgs++;
+    }
+  }
+  return numArgs;
+}
+
+// Get number of local variables for a method
+int getNumLocals(char *name) {
+  // Split the string into class and method
+  char class[100], method[100];
+  sscanf(name, "%[^.].%s", class, method);
+
+  // Reset the symbol table
+  plen = 100;
+  clen = 100;
+  slen = 100;
+
+  c = p[findP(class)].table;
+  s = c[findC(method)].table;
+
+  // Count the number of local variables
+  int numLocals = 0;
+  for (int i = 0; i < slen; i++) {
+    if (!strcmp(s[i].kind, "local")) {
+      numLocals++;
+    }
+  }
+  
+  return numLocals;
 }

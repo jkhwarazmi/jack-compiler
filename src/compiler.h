@@ -16,5 +16,20 @@ int isJackFile(char *filename);
 // Prints the error message
 void print(ParserInfo pi);
 
+// Writes the output to the file
+void emit(char *s);
+
+// Adds lines to be written to the output
+void appendLn(char *line);
+
+// Writes the vm code to the output file
+void outputLines();
+
+// Returns the current label and increments it
+int getLabel();
+
+// Determines whether the current function is void or not
+void setVoid(char *type);
+
 #endif
 

@@ -5,6 +5,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "symbols.h"
+#include "compiler.h"
 
 
 // you can declare prototypes of parser functions below
@@ -335,6 +336,11 @@ ParserInfo subroutineDeclar() {
 			pi.er = redecIdentifier;
 			pi.tk = t;
 			return pi;
+		} else {
+			// Emit the function name
+			char str[1024];
+			sprintf(str, "function %s.%s", getClassName(), t.lx);
+			appendLn(str);
 		}
 	} else {
 		pi.er = idExpected;
@@ -1057,11 +1063,12 @@ ParserInfo doStatement() {
 }
 
 
-// Need to modify w/ checking if subroutine in symbol table - requires reading all files
 ParserInfo subroutineCall() {
 	ParserInfo pi;
 	pi.er = none;
 	SubCalls s;
+	char output[100];
+	sprintf(output, "");
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -1073,7 +1080,7 @@ ParserInfo subroutineCall() {
 		strcpy(s.class, getClassName());
 		strcpy(s.prop, t.lx);
 		s.line = t.ln;
-		;
+		sprintf(output, "call %s.%s", s.class, s.prop);
 	} else {
 		pi.er = idExpected;
 		pi.tk = t;
@@ -1109,6 +1116,7 @@ ParserInfo subroutineCall() {
 			// Now we have the method name
 			strcpy(s.prop, t.lx);
 			s.line = t.ln;
+			sprintf(output, "call %s.%s", s.class, s.prop);
 		} else {
 			pi.er = idExpected;
 			pi.tk = t;
@@ -1150,6 +1158,8 @@ ParserInfo subroutineCall() {
 		return pi;
 	}
 
+	// Emit the subroutine call output after the expression list is on the stack
+	appendLn(output);
 	return pi;
 }
 
@@ -1222,7 +1232,7 @@ ParserInfo returnStatement() {
 		pi.tk = t;
 		return pi;
 	} else if (!strcmp(t.lx, ";")) {
-		;
+		appendLn("push constant 0");
 	} else if (!strcmp(t.lx, "}")) {
 		pi.er = semicolonExpected;
 		pi.tk = t;
@@ -1247,6 +1257,7 @@ ParserInfo returnStatement() {
 		return pi;
 	}
 
+	appendLn("return");
 	return pi;
 }
 

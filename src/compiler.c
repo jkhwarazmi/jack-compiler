@@ -5,15 +5,97 @@
 
 #include "compiler.h"
 
+FILE *f = NULL;
+// Flag to indicate if the current function is void or not
+int voidFunction = 0; 
+
+// Lines to be output
+char lines[1024][1024];
+int lineCount = 0;
+int labels = 0;
+
 // Returns 1 if the file is a Jack file, 0 otherwise
 int isJackFile(char *filename) {
   char *ext = strrchr(filename, '.');
   return ext && strcmp(ext, ".jack") == 0;
 }
 
+// Adds a line to the output
+void appendLn(char *line) {
+	strcpy(lines[lineCount], line);
+	lineCount++;
+}
+
+// Returns the current label and increments it
+int getLabel() {
+	labels++;
+	return labels - 1;
+}
+
+// Write the vm code to the output file
+void outputLines() {
+	for (int i = 0; i < lineCount; i++) {
+		// Create new output file
+		if (!strncmp(lines[i], "FILENAME:", 9)) {
+			if (f) {
+				fclose(f);
+				f = NULL;
+				labels = 0;
+			}
+
+			char *filename = lines[i] + 9;
+			f = fopen(filename, "w");
+
+			if (f == NULL) {
+				printf("Error creating output file: %s\n", filename);
+				exit(1);
+			}
+		} else if (f) {
+			if (!strncmp(lines[i], "function ", 9)) {
+				int locals = getNumLocals(lines[i] + 9);
+				char num[20];
+				sprintf(num, " %d\n", locals);
+				strcat(lines[i], num);
+				fprintf(f, "%s", lines[i]);
+			} else if (!strncmp(lines[i], "call ", 5)) {
+				int args = getNumArgs(lines[i] + 5);
+				char num[20];
+				sprintf(num, " %d\n", args);
+				strcat(lines[i], num);
+				fprintf(f, "%s", lines[i]);
+
+				// Pop void function returns to temp
+				if (voidFunction) {
+					fprintf(f, "pop temp 0\n");
+				}
+		  } else if (lines[i][0] != '\0') {
+				// Write the line to the output file
+				fprintf(f, "%s\n", lines[i]);
+			}
+		}
+	}
+	if (f) {
+		fclose(f);
+		f = NULL;
+	}
+}
+
+void setVoid(char *type) {
+	if (!strcmp(type, "void")) {
+		voidFunction = 1;
+	} else {
+		voidFunction = 0;
+	}
+}
+
 int InitCompiler ()
 {
   initSymbolTable();
+	for (int i = 0; i < 1024; i++) {
+		lines[i][0] = '\0';
+	}
+	lineCount = 0;
+	labels = 0;
 	return 1;
 }
 
@@ -25,7 +107,6 @@ ParserInfo compile (char* dir_name)
   DIR *d;
   struct dirent *entry;
   char file_name[1024];
-  FILE *f;
 
   d = opendir(dir_name);
   if (!d) {
@@ -38,9 +119,22 @@ ParserInfo compile (char* dir_name)
 			continue;
 		} else if (isJackFile(entry->d_name)) {
       snprintf(file_name, sizeof(file_name), "%s/%s", dir_name, entry->d_name);
-      if (!InitLexer(file_name)) {
+      
+			if (!InitLexer(file_name)) {
         exit(1);
       }
+
+			// Create output filename
+			char output[256];
+			int len = strlen(file_name) - 5;
+			strncpy(output, file_name, strlen(file_name) - 5);
+			output[len] = '\0';
+			strcat(output, ".vm");
+
+			strcpy(lines[lineCount], "FILENAME:");
+			strcat(lines[lineCount], output);
+			lineCount++;
+			
 			p = Parse();
 			if (p.er != none) {
 				return p;
@@ -57,6 +151,8 @@ ParserInfo compile (char* dir_name)
 	}
   
   closedir(d);
+	outputLines();
+	StopCompiler();
 	return p;
 }
 
