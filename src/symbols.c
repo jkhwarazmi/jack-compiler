@@ -251,7 +251,7 @@ int isStd(char *className) {
   return -1;
 }
 
-// Function to check if a method belongs to a specific standard library, returns index or -1 if not
+// Function to check if a method belongs to a specific standard library, returns arguments or -1 if not
 int isStdMethod(char *className, char *methodName) {
   int index = isStd(className);
   
@@ -261,7 +261,8 @@ int isStdMethod(char *className, char *methodName) {
     case 0:
       for (int i = 0; i < MATH_FUNCS_SIZE; i++) {
         if (!strcmp(methodName, MATH_FUNCS[i])) {
-          return i;
+          setVoid(MATH_FUNCS_RET[i]);
+          return MATH_FUNCS_ARGS[i];
         }
       }
       break;
@@ -269,7 +270,8 @@ int isStdMethod(char *className, char *methodName) {
     case 1:
       for (int i = 0; i < MEMORY_FUNCS_SIZE; i++) {
         if (!strcmp(methodName, MEMORY_FUNCS[i])) {
-          return 1;
+          setVoid(MEMORY_FUNCS_RET[i]);
+          return MEMORY_FUNCS_ARGS[i];
         }
       }
       break;
@@ -277,7 +279,8 @@ int isStdMethod(char *className, char *methodName) {
     case 2:
       for (int i = 0; i < SCREEN_FUNCS_SIZE; i++) {
         if (!strcmp(methodName, SCREEN_FUNCS[i])) {
-          return 1;
+          setVoid(SCREEN_FUNCS_RET[i]);
+          return SCREEN_FUNCS_ARGS[i];
         }
       }
       break;
@@ -285,7 +288,8 @@ int isStdMethod(char *className, char *methodName) {
     case 3:
       for (int i = 0; i < OUTPUT_FUNCS_SIZE; i++) {
         if (!strcmp(methodName, OUTPUT_FUNCS[i])) {
-          return 1;
+          setVoid(OUTPUT_FUNCS_RET[i]);
+          return OUTPUT_FUNCS_ARGS[i];
         }
       }
       break;
@@ -293,7 +297,8 @@ int isStdMethod(char *className, char *methodName) {
     case 4:
       for (int i = 0; i < KEYBOARD_FUNCS_SIZE; i++) {
         if (strcmp(methodName, KEYBOARD_FUNCS[i]) == 0) {
-          return 1;
+          setVoid(KEYBOARD_FUNCS_RET[i]);
+          return KEYBOARD_FUNCS_ARGS[i];
         }
       }
       break;
@@ -301,7 +306,8 @@ int isStdMethod(char *className, char *methodName) {
     case 5:
       for (int i = 0; i < STRING_FUNCS_SIZE; i++) {
         if (strcmp(methodName, STRING_FUNCS[i]) == 0) {
-          return 1;
+          setVoid(STRING_FUNCS_RET[i]);
+          return STRING_FUNCS_ARGS[i];
         }
       }
       break;
@@ -309,7 +315,8 @@ int isStdMethod(char *className, char *methodName) {
     case 6:
       for (int i = 0; i < ARRAY_FUNCS_SIZE; i++) {
         if (strcmp(methodName, ARRAY_FUNCS[i]) == 0) {
-          return 1;
+          setVoid(ARRAY_FUNCS_RET[i]);
+          return ARRAY_FUNCS_ARGS[i];
         }
       }
       break;
@@ -317,7 +324,8 @@ int isStdMethod(char *className, char *methodName) {
     case 7:
       for (int i = 0; i < SYS_FUNCS_SIZE; i++) {
         if (strcmp(methodName, SYS_FUNCS[i]) == 0) {
-          return 1;
+          setVoid(SYS_FUNCS_RET[i]);
+          return SYS_FUNCS_ARGS[i];
         }
       }
       break;

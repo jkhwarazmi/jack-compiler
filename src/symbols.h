@@ -15,9 +15,29 @@ static const char *MATH_FUNCS[] = {
   "abs", "multiply", "divide", "min", "max", "sqrt"
 };
 
+// Math functions arguments
+static const int MATH_FUNCS_ARGS[] = {
+  1, 2, 2, 2, 2, 1
+};
+
+// Math functions return types
+static char *MATH_FUNCS_RET[] = {
+  "int", "int", "int", "int", "int", "int"
+};
+
 // Memory functions
 static const char *MEMORY_FUNCS[] = {
   "peek", "poke", "alloc", "deAlloc"
+};
+
+// Memory functions arguments
+static const int MEMORY_FUNCS_ARGS[] = {
+  1, 2, 1, 1
+};
+
+// Memory functions return types
+static char *MEMORY_FUNCS_RET[] = {
+  "int", "void", "Array", "void"
 };
 
 // Screen functions
@@ -25,14 +45,44 @@ static const char *SCREEN_FUNCS[] = {
   "clearScreen", "setColor", "drawPixel", "drawLine", "drawRectangle", "drawCircle"
 };
 
+// Screen functions arguments
+static const int SCREEN_FUNCS_ARGS[] = {
+  0, 1, 2, 4, 4, 3
+};
+
+// Screen functions return types
+static char *SCREEN_FUNCS_RET[] = {
+  "void", "void", "void", "void", "void", "void"
+};
+
 // Output functions
 static const char *OUTPUT_FUNCS[] = {
   "init", "moveCursor", "printChar", "printString", "printInt", "println", "backSpace"
 };
 
+// Output functions arguments
+static const int OUTPUT_FUNCS_ARGS[] = {
+  0, 2, 1, 1, 1, 0, 0
+};
+
+// Output functions return types
+static char *OUTPUT_FUNCS_RET[] = {
+  "void", "void", "void", "void", "void", "void", "void"
+};
+
 // Keyboard functions
 static const char *KEYBOARD_FUNCS[] = {
   "keyPressed", "readChar", "readLine", "readInt"
+};
+
+// Keyboard functions arguments
+static const int KEYBOARD_FUNCS_ARGS[] = {
+  0, 0, 1, 1
+};
+
+// Keyboard functions return types
+static char *KEYBOARD_FUNCS_RET[] = {
+  "char", "char", "String", "int"
 };
 
 // String functions
@@ -41,14 +91,44 @@ static const char *STRING_FUNCS[] = {
   "intValue", "setInt", "newLine", "backSpace", "doubleQuote"
 };
 
+// String functions arguments
+static const int STRING_FUNCS_ARGS[] = {
+  1, 0, 0, 1, 2, 2, 0, 0, 1, 0, 0, 0
+};
+
+// String functions return types
+static char *STRING_FUNCS_RET[] = {
+  "String", "void", "int", "char", "void", "String", "void", "int", "void", "char", "char", "char"
+};
+
 // Array functions
 static const char *ARRAY_FUNCS[] = {
   "new", "dispose"
 };
 
+// Array functions arguments
+static const int ARRAY_FUNCS_ARGS[] = {
+  1, 0
+};
+
+// Array functions return types
+static char *ARRAY_FUNCS_RET[] = {
+  "Array", "void"
+};
+
 // System functions
 static const char *SYS_FUNCS[] = {
   "halt", "error", "wait"
+};
+
+// System functions arguments
+static const int SYS_FUNCS_ARGS[] = {
+  0, 1, 1
+};
+
+// System functions return types
+static char *SYS_FUNCS_RET[] = {
+  "void", "void", "void"
 };
 
 // Sizes
