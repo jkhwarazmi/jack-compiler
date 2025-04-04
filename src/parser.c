@@ -1281,6 +1281,12 @@ ParserInfo expression() {
 	while (t.tp == SYMBOL && !(strcmp(t.lx, "&") && strcmp(t.lx, "|"))) {
 		t = GetNextToken();
 
+		if (!strcmp(t.lx, "&")) {
+			appendLn("and");
+		} else {
+			appendLn("or");
+		}
+
 		pi = relationalExpression();
 		if (pi.er != none) {
 			return pi;
@@ -1301,6 +1307,9 @@ ParserInfo expression() {
 ParserInfo relationalExpression() {
 	ParserInfo pi;
 	pi.er = none;
+	int outputLine = 0;
+	char output[100];
+	sprintf(output, "");
 
 	pi = arithmeticExpression();
 	if (pi.er != none) {
@@ -1316,6 +1325,15 @@ ParserInfo relationalExpression() {
 
 	while (t.tp == SYMBOL && !(strcmp(t.lx, "=") && strcmp(t.lx, ">") && strcmp(t.lx, "<"))) {
 		t = GetNextToken();
+		outputLine = 1;
+
+		if (!strcmp(t.lx, "=")) {
+			strcpy(output, "eq");
+		} else if (!strcmp(t.lx, ">")) {
+			strcpy(output, "gt");
+		} else {
+			strcpy(output, "lt");
+		}
 
 		pi = arithmeticExpression();
 		if (pi.er != none) {
@@ -1328,6 +1346,10 @@ ParserInfo relationalExpression() {
 			pi.tk = t;
 			return pi;
 		}
+	}
+
+	if (outputLine) {
+		appendLn(output);
 	}
 
 	return pi;
@@ -1352,6 +1374,12 @@ ParserInfo arithmeticExpression() {
 
 	while (t.tp == SYMBOL && !(strcmp(t.lx, "+") && strcmp(t.lx, "-"))) {
 		t = GetNextToken();
+
+		if (!strcmp(t.lx, "+")) {
+			appendLn("add");
+		} else {
+			appendLn("sub");
+		}
 
 		pi = term();
 		if (pi.er != none) {
@@ -1388,6 +1416,12 @@ ParserInfo term() {
 	while (t.tp == SYMBOL && !(strcmp(t.lx, "*") && strcmp(t.lx, "/"))) {
 		t = GetNextToken();
 
+		if (!strcmp(t.lx, "*")) {
+			appendLn("call Math.multiply");
+		} else {
+			appendLn("call Math.divide");
+		}
+
 		pi = factor();
 		if (pi.er != none) {
 			return pi;
@@ -1408,6 +1442,9 @@ ParserInfo term() {
 ParserInfo factor() {
 	ParserInfo pi;
 	pi.er = none;
+	char output[100];
+	sprintf(output, "");
+	int outputLine = 0;
 
 	Token t = PeekNextToken();
 	if (t.tp == ERR) {
@@ -1416,6 +1453,13 @@ ParserInfo factor() {
 		return pi;
 	} else if (t.tp == SYMBOL && !(strcmp(t.lx, "-") && strcmp(t.lx, "~"))) {
 		t = GetNextToken();
+		outputLine = 1;
+
+		if (!strcmp(t.lx, "-")) {
+			strcpy(output, "neg");
+		} else {
+			strcpy(output, "not");
+		}
 	}
 
 	pi = operand();
@@ -1423,6 +1467,9 @@ ParserInfo factor() {
 		return pi;
 	}
 
+	if (outputLine) {
+		appendLn(output);
+	}
 	return pi;
 }
 
@@ -1431,6 +1478,9 @@ ParserInfo operand() {
 	ParserInfo pi;
 	pi.er = none;
 	SubCalls s;
+	int foundMethod = 0;
+	char methodCall[100];
+	sprintf(methodCall, "");
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -1438,9 +1488,32 @@ ParserInfo operand() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == INT || t.tp == STRING ) {
-		;
+		if (t.tp == INT) {
+			char output[100];
+			sprintf(output, "push constant %s", t.lx);
+			appendLn(output);
+		} else {
+			char output[100];
+			int len = strlen(t.lx);
+			sprintf(output, "push constant %i", len);
+			appendLn(output);
+			appendLn("call String.new");
+
+			for (int i = 0; i < len; i++) {
+				sprintf(output, "push constant %i", t.lx[i]);
+				appendLn(output);
+				appendLn("call String.appendChar");
+			}
+		}
 	} else if (t.tp == RESWORD && !(strcmp(t.lx, "true") && strcmp(t.lx, "false") && strcmp(t.lx, "null") && strcmp(t.lx, "this"))) {
-		;
+		if (!strcmp(t.lx, "true")) {
+			appendLn("push constant 0");
+			appendLn("not");
+		} else if (!strcmp(t.lx, "false") || !strcmp(t.lx, "null")) {
+			appendLn("push constant 0");
+		} else {
+			appendLn("push pointer 0");
+		}
 	} else if (t.tp == SYMBOL && !strcmp(t.lx, "(")) {
 		pi = expression();
 		if (pi.er != none) {
@@ -1499,6 +1572,9 @@ ParserInfo operand() {
 				}
 				// Add to the array of subroutine calls to check after parsing
 				checkLater(s.class, s.prop, s.line);
+				foundMethod = 1;
+				sprintf(methodCall, "call %s.%s", s.class, s.prop);
+
 				t = PeekNextToken();
 				if (t.tp == ERR) {
 					pi.er = lexerErr;
@@ -1514,18 +1590,32 @@ ParserInfo operand() {
 		} else {
 			// Check for local variable
 			int index = findS(id.lx);
-			char type[20] = "static";
 
 			// Check for class variable
 			if (index == -1) {
 				index = findC(id.lx);
-				strcpy(type, getKindC(index));
-			}
 
-			if (index == -1 || (strcmp(type, "static") && strcmp(type, "field"))) {
-				pi.er = undecIdentifier;
-				pi.tk = id;
-				return pi;
+				if (index == -1) {
+					pi.er = undecIdentifier;
+					pi.tk = id;
+					return pi;
+				} else {
+					char output[100];
+					if (!strcmp(getKindC(index), "static")) {
+						sprintf(output, "push static %i", getCOffset(index));
+					} else if (!strcmp(getKindC(index), "field")) {
+						sprintf(output, "push this %i", getCOffset(index));
+					}
+					appendLn(output);
+				}
+			} else {
+				char output[100];
+				if (!strcmp(getKindS(index), "argument")) {
+					sprintf(output, "push argument %i", getSOffset(index));
+				} else {
+					sprintf(output, "push local %i", getSOffset(index));
+				}
+				appendLn(output);
 			}
 		}
 
@@ -1569,6 +1659,11 @@ ParserInfo operand() {
 				pi.tk = t;
 				return pi;
 			}
+		}
+
+		if (foundMethod) {
+			// Emit the subroutine call output after the expression list is on the stack
+			appendLn(methodCall);
 		}
 	} else {
 		pi.er = syntaxError;
