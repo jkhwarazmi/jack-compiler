@@ -668,6 +668,7 @@ ParserInfo varDeclarStatement() {
 ParserInfo letStatement() {
 	ParserInfo pi;
 	pi.er = none;
+	char output[100];
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -690,18 +691,34 @@ ParserInfo letStatement() {
 	} else if (t.tp == ID) {
 		// Check for local variable
 		int index = findS(t.lx);
-		char type[20] = "static";
+		char type[20];
 
 		// Check for class variable
 		if (index == -1) {
 			index = findC(t.lx);
-			strcpy(type, getKindC(index));
-		}
 
-		if (index == -1 || (strcmp(type, "static") && strcmp(type, "field"))) {
-			pi.er = undecIdentifier;
-			pi.tk = t;
-			return pi;
+			if (index != -1) {
+				strcpy(type, getKindC(index));
+
+				if (!strcmp(type, "static")) {
+					sprintf(output, "pop static %i", getCOffset(index));
+				} else if (!strcmp(type, "field")) {
+					sprintf(output, "pop this %i", getCOffset(index));
+				}
+			} else {
+				pi.er = undecIdentifier;
+				pi.tk = t;
+				return pi;
+			}
+		} else {
+			// It was a local variable or argument
+			strcpy(type, getKindS(index));
+
+			if (!strcmp(type, "argument")) {
+				sprintf(output, "pop argument %i", getSOffset(index));
+			} else {
+				sprintf(output, "pop local %i", getSOffset(index));
+			}
 		}
 	} else {
 		pi.er = idExpected;
@@ -766,6 +783,8 @@ ParserInfo letStatement() {
 		return pi;
 	}
 
+	// Emit the assignment output after the expression is on the stack
+	appendLn(output);
 	return pi;
 }
 
@@ -773,6 +792,9 @@ ParserInfo letStatement() {
 ParserInfo ifStatement() {
 	ParserInfo pi;
 	pi.er = none;
+	char output[100];
+	sprintf(output, "");
+	int label = getLabel();
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -818,13 +840,20 @@ ParserInfo ifStatement() {
 		return pi;
 	}
 
+	// Set output to if-label
+	sprintf(output, "if-goto IF_TRUE%d", label);
+	appendLn(output);
+	sprintf(output, "goto IF_FALSE%d", label);
+	appendLn(output);
+
 	t = GetNextToken();
 	if (t.tp == ERR) {
 		pi.er = lexerErr;
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
-		;
+		sprintf(output, "label IF_TRUE%d", label);
+		appendLn(output);
 	} else {
 		pi.er = openBraceExpected;
 		pi.tk = t;
@@ -879,7 +908,8 @@ ParserInfo ifStatement() {
 			pi.tk = t;
 			return pi;
 		} else if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
-			;
+			sprintf(output, "label IF_FALSE%d", label);
+			appendLn(output);
 		} else {
 			pi.er = openBraceExpected;
 			pi.tk = t;
@@ -921,6 +951,11 @@ ParserInfo ifStatement() {
 		}
 	}
 
+	// Check that output doesn't start with label IF_FALSE
+	if (strncmp(output, "label IF_FALSE", 14)) {
+		sprintf(output, "label IF_FALSE%d", label);
+		appendLn(output);
+	}
 	return pi;
 }
 
@@ -928,6 +963,9 @@ ParserInfo ifStatement() {
 ParserInfo whileStatement() {
 	ParserInfo pi;
 	pi.er = none;
+	char output[100];
+	sprintf(output, "");
+	int label = getLabel();
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -935,7 +973,8 @@ ParserInfo whileStatement() {
 		pi.tk = t;
 		return pi;
 	} else if (!strcmp(t.lx, "while")) {
-		;
+		sprintf(output, "label WHILE_EXP%d", label);
+		appendLn(output);
 	} else {
 		pi.er = syntaxError;
 		pi.tk = t;
@@ -966,7 +1005,10 @@ ParserInfo whileStatement() {
 		pi.tk = t;
 		return pi;
 	} else if (t.tp == SYMBOL && !strcmp(t.lx, ")")) {
-		;
+		sprintf(output, "not");
+		appendLn(output);
+		sprintf(output, "if-goto WHILE_END%d", label);
+		appendLn(output);
 	} else {
 		pi.er = closeParenExpected;
 		pi.tk = t;
@@ -1020,6 +1062,10 @@ ParserInfo whileStatement() {
 		return pi;
 	}
 
+	sprintf(output, "goto WHILE_EXP%d", label);
+	appendLn(output);
+	sprintf(output, "label WHILE_END%d", label);
+	appendLn(output);
 	return pi;
 }
 
