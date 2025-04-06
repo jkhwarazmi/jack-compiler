@@ -20,6 +20,8 @@ int sclen = 0; // Number of subroutine calls in the table
 SubCalls classes[100];
 int cclen = 0;
 
+int statics = 0;
+
 // Reset the symbol tables
 void initSymbolTable() {
   plen = 0;
@@ -27,9 +29,24 @@ void initSymbolTable() {
   slen = 0;
   sclen = 0;
   cclen = 0;
+  statics = 0;
 
   c = p[0].table;
   s = c[0].table;
+
+  for (int i = 0; i < 100; i++) {
+    strcpy(p[i].name, "");
+    
+    strcpy(c[i].name, "");
+    strcpy(c[i].type, "");
+    strcpy(c[i].kind, "");
+    c[i].offset = 0;
+
+    strcpy(s[i].name, "");
+    strcpy(s[i].type, "");
+    strcpy(s[i].kind, "");
+    s[i].offset = 0;
+  }
 }
 
 // Inserts a new class and returns its index, -1 if it already exists
@@ -49,6 +66,19 @@ int insertP(char *name) {
   clen = 0; // Reset class symbol table count
   slen = 0; // Reset subroutine symbol table count
 
+  // Empty both symbol tables
+  for (int i = 0; i < 100; i++) {
+    strcpy(c[i].name, "");
+    strcpy(c[i].type, "");
+    strcpy(c[i].kind, "");
+    c[i].offset = 0;
+
+    strcpy(s[i].name, "");
+    strcpy(s[i].type, "");
+    strcpy(s[i].kind, "");
+    s[i].offset = 0;
+  }
+
   return plen - 1;
 }
 
@@ -67,17 +97,30 @@ int insertC(char *name, char *type, char *kind) {
     c[clen].offset = 0;
     int i = clen - 1;
 
-    while (i >= 0) {
-      if (!strcmp(c[i].kind, c[clen].kind)) {
-        c[clen].offset++;
+    if (!strcmp(kind, "static")) {
+      c[clen].offset = statics;
+      statics++;
+    } else {
+      while (i >= 0) {
+        if (!strcmp(c[i].kind, c[clen].kind)) {
+          c[clen].offset++;
+        }
+        i--;
       }
-      i--;
     }
   // Have a subroutine, go to the subroutine table
   } else {
     s = c[clen].table;
     slen = 0;
     s[slen].offset = 0;
+
+    // Empty the subroutine symbol table
+    for (int i = 0; i < 100; i++) {
+      strcpy(s[i].name, "");
+      strcpy(s[i].type, "");
+      strcpy(s[i].kind, "");
+      s[i].offset = 0;
+    }
 
     // Static functions have no implicit this argument
     if (strcmp(kind, "function")) {
