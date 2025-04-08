@@ -669,6 +669,7 @@ ParserInfo letStatement() {
 	ParserInfo pi;
 	pi.er = none;
 	char output[100];
+	int array = 0;
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -701,9 +702,9 @@ ParserInfo letStatement() {
 				strcpy(type, getKindC(index));
 
 				if (!strcmp(type, "static")) {
-					sprintf(output, "pop static %i", getCOffset(index));
+					sprintf(output, "static %i", getCOffset(index));
 				} else if (!strcmp(type, "field")) {
-					sprintf(output, "pop this %i", getCOffset(index));
+					sprintf(output, "this %i", getCOffset(index));
 				}
 			} else {
 				pi.er = undecIdentifier;
@@ -715,9 +716,9 @@ ParserInfo letStatement() {
 			strcpy(type, getKindS(index));
 
 			if (!strcmp(type, "argument")) {
-				sprintf(output, "pop argument %i", getSOffset(index));
+				sprintf(output, "argument %i", getSOffset(index));
 			} else {
-				sprintf(output, "pop local %i", getSOffset(index));
+				sprintf(output, "local %i", getSOffset(index));
 			}
 		}
 	} else {
@@ -744,7 +745,12 @@ ParserInfo letStatement() {
 			pi.tk = t;
 			return pi;
 		} else if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
-			;
+			// Add push to the beginning of the output
+			char newOutput[100];
+			sprintf(newOutput, "push %s", output);
+			appendLn(newOutput);
+			appendLn("add");
+			array = 1;
 		} else {
 			pi.er = closeBracketExpected;
 			pi.tk = t;
@@ -784,7 +790,20 @@ ParserInfo letStatement() {
 	}
 
 	// Emit the assignment output after the expression is on the stack
-	appendLn(output);
+	if (!array) {
+		char newOutput[100];
+		sprintf(newOutput, "pop %s", output);
+		appendLn(newOutput);
+	} else {
+		sprintf(output, "pop temp 0");
+		appendLn(output);
+		sprintf(output, "pop pointer 1");
+		appendLn(output);
+		sprintf(output, "push temp 0");
+		appendLn(output);
+		sprintf(output, "pop that 0");
+		appendLn(output);
+	}
 	return pi;
 }
 
@@ -1527,6 +1546,9 @@ ParserInfo operand() {
 	int foundMethod = 0;
 	char methodCall[100];
 	sprintf(methodCall, "");
+	char output[100];
+	sprintf(output, "");
+	int array = 0;
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -1646,22 +1668,18 @@ ParserInfo operand() {
 					pi.tk = id;
 					return pi;
 				} else {
-					char output[100];
 					if (!strcmp(getKindC(index), "static")) {
-						sprintf(output, "push static %i", getCOffset(index));
+						sprintf(output, "static %i", getCOffset(index));
 					} else if (!strcmp(getKindC(index), "field")) {
-						sprintf(output, "push this %i", getCOffset(index));
+						sprintf(output, "this %i", getCOffset(index));
 					}
-					appendLn(output);
 				}
 			} else {
-				char output[100];
 				if (!strcmp(getKindS(index), "argument")) {
-					sprintf(output, "push argument %i", getSOffset(index));
+					sprintf(output, "argument %i", getSOffset(index));
 				} else {
-					sprintf(output, "push local %i", getSOffset(index));
+					sprintf(output, "local %i", getSOffset(index));
 				}
-				appendLn(output);
 			}
 		}
 
@@ -1679,7 +1697,12 @@ ParserInfo operand() {
 				pi.tk = t;
 				return pi;
 			} else if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
-				;
+				// Add push to the beginning of the output
+				char newOutput[100];
+				sprintf(newOutput, "push %s", output);
+				appendLn(newOutput);
+				appendLn("add");
+				array = 1;
 			} else {
 				pi.er = closeBracketExpected;
 				pi.tk = t;
@@ -1710,6 +1733,15 @@ ParserInfo operand() {
 		if (foundMethod) {
 			// Emit the subroutine call output after the expression list is on the stack
 			appendLn(methodCall);
+		} else if (array) {
+			sprintf(output, "pop pointer 1");
+			appendLn(output);
+			sprintf(output, "push that 0");
+			appendLn(output);
+		} else {
+			char newOutput[100];
+			sprintf(newOutput, "push %s", output);
+			appendLn(newOutput);
 		}
 	} else {
 		pi.er = syntaxError;
