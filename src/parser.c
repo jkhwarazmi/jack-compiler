@@ -1424,6 +1424,8 @@ ParserInfo relationalExpression() {
 ParserInfo arithmeticExpression() {
 	ParserInfo pi;
 	pi.er = none;
+	char output[100];
+	sprintf(output, "");
 
 	pi = term();
 	if (pi.er != none) {
@@ -1441,9 +1443,9 @@ ParserInfo arithmeticExpression() {
 		t = GetNextToken();
 
 		if (!strcmp(t.lx, "+")) {
-			appendLn("add");
+			sprintf(output, "add");
 		} else {
-			appendLn("sub");
+			sprintf(output, "sub");
 		}
 
 		pi = term();
@@ -1458,6 +1460,7 @@ ParserInfo arithmeticExpression() {
 		}
 	}
 
+	appendLn(output);
 	return pi;
 }
 
@@ -1465,6 +1468,8 @@ ParserInfo arithmeticExpression() {
 ParserInfo term() {
 	ParserInfo pi;
 	pi.er = none;
+	char output[100];
+	sprintf(output, "");
 
 	pi = factor();
 	if (pi.er != none) {
@@ -1482,9 +1487,9 @@ ParserInfo term() {
 		t = GetNextToken();
 
 		if (!strcmp(t.lx, "*")) {
-			appendLn("call Math.multiply");
+			sprintf(output, "call Math.multiply");
 		} else {
-			appendLn("call Math.divide");
+			sprintf(output, "call Math.divide");
 		}
 
 		pi = factor();
@@ -1500,6 +1505,7 @@ ParserInfo term() {
 		}
 	}
 
+	appendLn(output);
 	return pi;
 }
 
