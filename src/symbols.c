@@ -123,7 +123,7 @@ int insertC(char *name, char *type, char *kind) {
     }
 
     // Static functions have no implicit this argument
-    if (strcmp(kind, "function")) {
+    if (strcmp(kind, "function") && strcmp(name, "new")) {
       strcpy(s[slen].name, "this");
       strcpy(s[slen].type, p[plen - 1].name);
       strcpy(s[slen].kind, "argument");
@@ -451,4 +451,41 @@ int getNumLocals(char *name) {
   }
   
   return numLocals;
+}
+
+// Gets the kind of a subroutine
+char *getKindSub(char *name) {
+  // Split the string into class and method
+  char class[100], method[100];
+  sscanf(name, "%[^.].%s", class, method);
+
+  // Reset the symbol table
+  plen = 100;
+  clen = 100;
+  slen = 100;
+
+  c = p[findP(class)].table;
+  int methodIndex = findC(method);
+  
+  return c[methodIndex].kind;
+}
+
+// Get the number of fields in a class
+int getNumFields(char *name) {
+  // Reset the symbol table
+  plen = 100;
+  clen = 100;
+  slen = 100;
+
+  c = p[findP(name)].table;
+
+  // Count the number of fields
+  int numFields = 0;
+  for (int i = 0; i < clen; i++) {
+    if (!strcmp(c[i].kind, "field")) {
+      numFields++;
+    }
+  }
+  
+  return numFields;
 }

@@ -219,4 +219,10 @@ int getNumArgs(char *name);
 // Get number of local variables for a method
 int getNumLocals(char *name);
 
+// Get number of fields for a class
+int getNumFields(char *name);
+
+// Get the kind of a subroutine based on its class and function name
+char *getKindSub(char *name);
+
 #endif

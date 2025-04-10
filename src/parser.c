@@ -1134,6 +1134,8 @@ ParserInfo subroutineCall() {
 	SubCalls s;
 	char output[100];
 	sprintf(output, "");
+	int pushThis = 1;
+	char thisOutput[100];
 
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
@@ -1146,6 +1148,7 @@ ParserInfo subroutineCall() {
 		strcpy(s.prop, t.lx);
 		s.line = t.ln;
 		sprintf(output, "call %s.%s", s.class, s.prop);
+		sprintf(thisOutput, "CHECKTHIS:%s.%s", s.class, s.prop);
 	} else {
 		pi.er = idExpected;
 		pi.tk = t;
@@ -1167,6 +1170,7 @@ ParserInfo subroutineCall() {
 			pi.tk = t;
 			return pi;
 		} else if (t.tp == ID) {
+			pushThis = 0;
 			// The method was actually a class name or is a variable
 			strcpy(s.class, s.prop);
 
@@ -1203,6 +1207,10 @@ ParserInfo subroutineCall() {
 		pi.er = openParenExpected;
 		pi.tk = t;
 		return pi;
+	}
+
+	if (pushThis) {
+		appendLn(thisOutput);
 	}
 
 	pi = expressionList();
@@ -1628,17 +1636,29 @@ ParserInfo operand() {
 			} else if (t.tp == ID) {
 				strcpy(s.prop, t.lx);
 				s.line = t.ln;
+				char pushed[100];
 
 				// First check if its a local variable
 				int index = findS(id.lx);
 				if (index != -1 ) {
 					// Its type is the class name
 					strcpy(s.class, getTypeS(index));
+					if (!strcmp(getKindS(index), "argument")) {
+						sprintf(pushed, "push argument %i", getSOffset(index));
+					} else {
+						sprintf(pushed, "push local %i", getSOffset(index));
+					}
+					appendLn(pushed);
 				} else {
 					index = findC(id.lx);
 					if (index != -1) {
 						// Its type is the class name
 						strcpy(s.class, getTypeC(index));
+						if (!strcmp(getKindC(index), "static")) {
+							sprintf(pushed, "push static %i", getCOffset(index));
+						} else if (!strcmp(getKindC(index), "field")) {
+							sprintf(pushed, "push this %i", getCOffset(index));
+						}
 					} else {
 						// Assume class name
 						strcpy(s.class, id.lx);

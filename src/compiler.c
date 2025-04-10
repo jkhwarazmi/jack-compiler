@@ -10,7 +10,7 @@ FILE *f = NULL;
 int voidFunction = 0; 
 
 // Lines to be output
-char lines[1024][1024];
+char lines[2048][1024];
 int lineCount = 0;
 int labels = 0;
 
@@ -52,11 +52,31 @@ void outputLines() {
 			}
 		} else if (f) {
 			if (!strncmp(lines[i], "function ", 9)) {
+				int isConstructor = 0;
+				int isMethod = 0;
+
+				char *end = strrchr(lines[i], '.');
+				char *class = strndup(lines[i] + 9, end - (lines[i] + 9));
+  			if (end && !strcmp(end, ".new")) {
+					isConstructor = 1;
+				} else if (end && strcmp("function", getKindSub(lines[i] + 9))) {
+					isMethod = 1;
+				}
+
 				int locals = getNumLocals(lines[i] + 9);
 				char num[20];
 				sprintf(num, " %d\n", locals);
 				strcat(lines[i], num);
 				fprintf(f, "%s", lines[i]);
+
+				if (isConstructor) {
+					fprintf(f, "push constant %d\n", getNumFields(class));
+					fprintf(f, "call Memory.alloc 1\n");
+					fprintf(f, "pop pointer 0\n");
+				} else if (isMethod) {
+					fprintf(f, "push argument 0\n");
+					fprintf(f, "pop pointer 0\n");
+				}
 			} else if (!strncmp(lines[i], "call ", 5)) {
 				int args = getNumArgs(lines[i] + 5);
 				char num[20];
@@ -68,7 +88,11 @@ void outputLines() {
 				if (voidFunction) {
 					fprintf(f, "pop temp 0\n");
 				}
-		  } else if (lines[i][0] != '\0') {
+		  } else if (!strncmp(lines[i], "CHECKTHIS:", 10)) {
+				if (strcmp("function", getKindSub(lines[i] + 10))) {
+					fprintf(f, "push pointer 0\n");
+				}
+			} else if (lines[i][0] != '\0') {
 				// Write the line to the output file
 				fprintf(f, "%s\n", lines[i]);
 			}
