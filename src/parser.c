@@ -1363,6 +1363,8 @@ ParserInfo returnStatement() {
 ParserInfo expression() {
 	ParserInfo pi;
 	pi.er = none;
+	char output[512];
+	sprintf(output, "TMP");
 
 	pi = relationalExpression();
 	if (pi.er != none) {
@@ -1380,9 +1382,9 @@ ParserInfo expression() {
 		t = GetNextToken();
 
 		if (!strcmp(t.lx, "&")) {
-			appendLn("and");
+			sprintf(output, "and");
 		} else {
-			appendLn("or");
+			sprintf(output, "or");
 		}
 
 		pi = relationalExpression();
@@ -1398,6 +1400,7 @@ ParserInfo expression() {
 		}
 	}
 
+	appendLn(output);
 	return pi;
 }
 
