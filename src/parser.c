@@ -927,6 +927,8 @@ ParserInfo ifStatement() {
 			pi.tk = t;
 			return pi;
 		} else if (t.tp == SYMBOL && !strcmp(t.lx, "{")) {
+			sprintf(output, "goto IF_END%d", label);
+			appendLn(output);
 			sprintf(output, "label IF_FALSE%d", label);
 			appendLn(output);
 		} else {
@@ -973,6 +975,9 @@ ParserInfo ifStatement() {
 	// Check that output doesn't start with label IF_FALSE
 	if (strncmp(output, "label IF_FALSE", 14)) {
 		sprintf(output, "label IF_FALSE%d", label);
+		appendLn(output);
+	} else {
+		sprintf(output, "label IF_END%d", label);
 		appendLn(output);
 	}
 	return pi;
