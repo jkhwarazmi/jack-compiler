@@ -55,11 +55,16 @@ void outputLines() {
 				int isConstructor = 0;
 				int isMethod = 0;
 
-				char *end = strrchr(lines[i], '.');
-				char *class = strndup(lines[i] + 9, end - (lines[i] + 9));
-  			if (end && !strcmp(end, ".new")) {
+				// Buffers
+				char function[100];
+				char class[100];
+				char end[100];
+
+				sscanf(lines[i], "%s %[^.].%s", function, class, end);
+
+  			if (!strcmp(end, "new")) {
 					isConstructor = 1;
-				} else if (end && strcmp("function", getKindSub(lines[i] + 9))) {
+				} else if (strcmp("function", getKindSub(lines[i] + 9))) {
 					isMethod = 1;
 				}
 
@@ -92,7 +97,12 @@ void outputLines() {
 				if (strcmp("function", getKindSub(lines[i] + 10))) {
 					fprintf(f, "push pointer 0\n");
 				}
-			} else if (lines[i][0] != '\0') {
+			} else if (!strncmp(lines[i], "CHECKEXTTHIS:", 13)) {
+				if (strcmp("function", getKindSub(lines[i] + 13))) {
+					fprintf(f, "%s\n", lines[i + 1]);
+				}
+				i++;
+			} else if (lines[i][0] != '\0' && strcmp(lines[i], "TMP")) {
 				// Write the line to the output file
 				fprintf(f, "%s\n", lines[i]);
 			}

@@ -668,7 +668,7 @@ ParserInfo varDeclarStatement() {
 ParserInfo letStatement() {
 	ParserInfo pi;
 	pi.er = none;
-	char output[100];
+	char output[512];
 	int array = 0;
 
 	Token t = GetNextToken();
@@ -746,7 +746,7 @@ ParserInfo letStatement() {
 			return pi;
 		} else if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
 			// Add push to the beginning of the output
-			char newOutput[100];
+			char newOutput[1024];
 			sprintf(newOutput, "push %s", output);
 			appendLn(newOutput);
 			appendLn("add");
@@ -791,7 +791,7 @@ ParserInfo letStatement() {
 
 	// Emit the assignment output after the expression is on the stack
 	if (!array) {
-		char newOutput[100];
+		char newOutput[1024];
 		sprintf(newOutput, "pop %s", output);
 		appendLn(newOutput);
 	} else {
@@ -811,8 +811,8 @@ ParserInfo letStatement() {
 ParserInfo ifStatement() {
 	ParserInfo pi;
 	pi.er = none;
-	char output[100];
-	sprintf(output, "");
+	char output[512];
+	sprintf(output, "TMP");
 	int label = getLabel();
 
 	Token t = GetNextToken();
@@ -982,8 +982,8 @@ ParserInfo ifStatement() {
 ParserInfo whileStatement() {
 	ParserInfo pi;
 	pi.er = none;
-	char output[100];
-	sprintf(output, "");
+	char output[512];
+	sprintf(output, "TMP");
 	int label = getLabel();
 
 	Token t = GetNextToken();
@@ -1132,11 +1132,16 @@ ParserInfo subroutineCall() {
 	ParserInfo pi;
 	pi.er = none;
 	SubCalls s;
-	char output[100];
-	sprintf(output, "");
+	
+	char output[512];
+	sprintf(output, "TMP");
+	
 	int pushThis = 1;
-	char thisOutput[100];
-
+	char thisOutput[512];
+	sprintf(thisOutput, "TMP");
+	char nextLine[512];
+	sprintf(nextLine, "TMP");
+	
 	Token t = GetNextToken();
 	if (t.tp == ERR) {
 		pi.er = lexerErr;
@@ -1154,7 +1159,7 @@ ParserInfo subroutineCall() {
 		pi.tk = t;
 		return pi;
 	}
-
+	
 	t = PeekNextToken();
 	if (t.tp == ERR) {
 		pi.er = lexerErr;
@@ -1163,7 +1168,7 @@ ParserInfo subroutineCall() {
 	// We have an external class + method call
 	} else if (t.tp == SYMBOL && !strcmp(t.lx, ".")) {
 		t = GetNextToken();
-
+			
 		t = GetNextToken();
 		if (t.tp == ERR) {
 			pi.er = lexerErr;
@@ -1171,31 +1176,49 @@ ParserInfo subroutineCall() {
 			return pi;
 		} else if (t.tp == ID) {
 			pushThis = 0;
+			
 			// The method was actually a class name or is a variable
 			strcpy(s.class, s.prop);
-
+					
 			// Check for variable
 			int index;
+			int foundVariable = 0;
+					
 			if ((index = findS(s.class)) != -1) {
 				strcpy(s.class, getTypeS(index));
-			} else if ((index  = findC(s.class)) != -1) {
+				foundVariable = 1;
+							
+				if (!strcmp(getKindS(index), "argument")) {
+					sprintf(nextLine, "push argument %d", getSOffset(index));
+				} else {
+					sprintf(nextLine, "push local %d", getSOffset(index));
+				}
+			} else if ((index = findC(s.class)) != -1) {
 				strcpy(s.class, getTypeC(index));
-			} 
-
+				foundVariable = 1;
+							
+				if (!strcmp(getKindC(index), "static")) {
+					sprintf(nextLine, "push static %d", getCOffset(index));
+				} else if (!strcmp(getKindC(index), "field")) {
+					sprintf(nextLine, "push this %d", getCOffset(index));
+				}
+			}
+					
 			// Now we have the method name
 			strcpy(s.prop, t.lx);
 			s.line = t.ln;
 			sprintf(output, "call %s.%s", s.class, s.prop);
+			sprintf(thisOutput, "CHECKEXTTHIS:%s.%s", s.class, s.prop);
 		} else {
 			pi.er = idExpected;
 			pi.tk = t;
 			return pi;
 		}
 	}
-
+	
 	// Add to the array of subroutine calls to check after parsing
 	checkLater(s.class, s.prop, s.line);
-
+	
 	t = GetNextToken();
 	if (t.tp == ERR) {
 		pi.er = lexerErr;
@@ -1208,16 +1231,18 @@ ParserInfo subroutineCall() {
 		pi.tk = t;
 		return pi;
 	}
-
+	
 	if (pushThis) {
 		appendLn(thisOutput);
+	} else if (strlen(nextLine) > 0) {
+		appendLn(nextLine);
 	}
-
+	
 	pi = expressionList();
 	if (pi.er != none) {
 		return pi;
 	}
-
+	
 	t = GetNextToken();
 	if (t.tp == ERR) {
 		pi.er = lexerErr;
@@ -1230,7 +1255,7 @@ ParserInfo subroutineCall() {
 		pi.tk = t;
 		return pi;
 	}
-
+	
 	// Emit the subroutine call output after the expression list is on the stack
 	appendLn(output);
 	return pi;
@@ -1381,8 +1406,8 @@ ParserInfo relationalExpression() {
 	ParserInfo pi;
 	pi.er = none;
 	int outputLine = 0;
-	char output[100];
-	sprintf(output, "");
+	char output[512];
+	sprintf(output, "TMP");
 
 	pi = arithmeticExpression();
 	if (pi.er != none) {
@@ -1432,8 +1457,8 @@ ParserInfo relationalExpression() {
 ParserInfo arithmeticExpression() {
 	ParserInfo pi;
 	pi.er = none;
-	char output[100];
-	sprintf(output, "");
+	char output[512];
+	sprintf(output, "TMP");
 
 	pi = term();
 	if (pi.er != none) {
@@ -1476,8 +1501,8 @@ ParserInfo arithmeticExpression() {
 ParserInfo term() {
 	ParserInfo pi;
 	pi.er = none;
-	char output[100];
-	sprintf(output, "");
+	char output[512];
+	sprintf(output, "TMP");
 
 	pi = factor();
 	if (pi.er != none) {
@@ -1521,8 +1546,8 @@ ParserInfo term() {
 ParserInfo factor() {
 	ParserInfo pi;
 	pi.er = none;
-	char output[100];
-	sprintf(output, "");
+	char output[512];
+	sprintf(output, "TMP");
 	int outputLine = 0;
 
 	Token t = PeekNextToken();
@@ -1558,10 +1583,10 @@ ParserInfo operand() {
 	pi.er = none;
 	SubCalls s;
 	int foundMethod = 0;
-	char methodCall[100];
-	sprintf(methodCall, "");
-	char output[100];
-	sprintf(output, "");
+	char methodCall[512];
+	sprintf(methodCall, "TMP");
+	char output[512];
+	sprintf(output, "TMP");
 	int array = 0;
 
 	Token t = GetNextToken();
@@ -1571,11 +1596,11 @@ ParserInfo operand() {
 		return pi;
 	} else if (t.tp == INT || t.tp == STRING ) {
 		if (t.tp == INT) {
-			char output[100];
+			char output[512];
 			sprintf(output, "push constant %s", t.lx);
 			appendLn(output);
 		} else {
-			char output[100];
+			char output[512];
 			int len = strlen(t.lx);
 			sprintf(output, "push constant %i", len);
 			appendLn(output);
@@ -1636,7 +1661,7 @@ ParserInfo operand() {
 			} else if (t.tp == ID) {
 				strcpy(s.prop, t.lx);
 				s.line = t.ln;
-				char pushed[100];
+				char pushed[512];
 
 				// First check if its a local variable
 				int index = findS(id.lx);
@@ -1724,7 +1749,7 @@ ParserInfo operand() {
 				return pi;
 			} else if (t.tp == SYMBOL && !strcmp(t.lx, "]")) {
 				// Add push to the beginning of the output
-				char newOutput[100];
+				char newOutput[1024];
 				sprintf(newOutput, "push %s", output);
 				appendLn(newOutput);
 				appendLn("add");
@@ -1765,7 +1790,7 @@ ParserInfo operand() {
 			sprintf(output, "push that 0");
 			appendLn(output);
 		} else {
-			char newOutput[100];
+			char newOutput[1024];
 			sprintf(newOutput, "push %s", output);
 			appendLn(newOutput);
 		}
