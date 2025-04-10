@@ -1692,6 +1692,7 @@ ParserInfo operand() {
 						} else if (!strcmp(getKindC(index), "field")) {
 							sprintf(pushed, "push this %i", getCOffset(index));
 						}
+						appendLn(pushed);
 					} else {
 						// Assume class name
 						strcpy(s.class, id.lx);
