@@ -255,12 +255,17 @@ void printError(ParserInfo pi) {
 }
 
 #ifndef TEST_COMPILER
-int main ()
+int main (int argc, char *argv[])
 {
+	if (argc != 2) {
+		printf("Usage: %s <directory>\n", argv[0]);
+		return 1;
+	}
+
 	InitCompiler ();
-	ParserInfo p = compile ("Pong");
+	ParserInfo p = compile (argv[1]);
 	printError(p);
 	StopCompiler ();
-	return 1;
+	return p.er != none;
 }
 #endif
