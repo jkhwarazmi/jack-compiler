@@ -255,7 +255,8 @@ int InitLexer (char* file_name)
   {
     tokenReady = 0;
     line = 1;
-    strcpy(t.fl, file_name);
+    strncpy(t.fl, file_name, sizeof(t.fl) - 1);
+    t.fl[sizeof(t.fl) - 1] = '\0';
     return 1;
   }
   return 0;
