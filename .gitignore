@@ -2,15 +2,14 @@
 .vscode/
 
 # Build output
+jackc
 a.out
 *.o
 *.gch
+*.dSYM/
 
 # Graders
-tests/lexer/LexerGrader
-tests/parser/ParserGrader
-tests/symbols/SymbolGrader
-tests/codegen/CodeGrader
+tests/*/*Grader
 tests/codegen/SourceFiles.txt
 
 # Generated VM code
